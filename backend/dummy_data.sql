@@ -1,13 +1,13 @@
-INSERT INTO TEAMS (id, name) 
+INSERT INTO Teams (TeamName) 
 VALUES
-(1, 'Support'),
-(2, 'Network'),
-(3, 'Frontend'),
-(4, 'Data'),
-(5, 'DevOps'),
-(6, 'Backend');
+('Support'),
+('Network'),
+('Frontend'),
+('Data'),
+('DevOps'),
+('Backend');
 
-INSERT INTO USERS (id, full_name, email, team)
+INSERT INTO Users (UserID, FullName, Email, Team)
 VALUES
 (1, 'Popescu Ion', 'ion.popescu@gmail.com', 'Support'),
 (2, 'Ionescu Maria', 'maria.ionescu@gmail.com', 'Network'),
