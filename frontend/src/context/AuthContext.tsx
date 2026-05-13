@@ -1,13 +1,25 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
-const AuthContext = createContext(null)
+interface User {
+  username: string
+  role: string
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+interface AuthContextType {
+  user: User | null
+  isAuthenticated: boolean
+  login: (username: string, password: string) => Promise<User>
+  logout: () => void
+}
+
+const AuthContext = createContext<AuthContextType | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('auth_user')
     if (!stored) return null
     try {
-      return JSON.parse(stored)
+      return JSON.parse(stored) as User
     } catch {
       localStorage.removeItem('auth_user')
       return null
@@ -16,11 +28,11 @@ export function AuthProvider({ children }) {
 
   // Placeholder login — fără backend deocamdată.
   // Când integrezi backendul, înlocuiești corpul cu un apel api.post('/auth/login', ...)
-  const login = async (username, password) => {
+  const login = async (username: string, password: string): Promise<User> => {
     if (!username || !password) {
       throw new Error('Username și parolă obligatorii')
     }
-    const mockUser = { username, role: 'engineer' }
+    const mockUser: User = { username, role: 'engineer' }
     const mockToken = 'placeholder-token-' + Date.now()
     localStorage.setItem('auth_token', mockToken)
     localStorage.setItem('auth_user', JSON.stringify(mockUser))
@@ -34,7 +46,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  const value = {
+  const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
@@ -44,7 +56,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth trebuie folosit în interiorul <AuthProvider>')
   return ctx

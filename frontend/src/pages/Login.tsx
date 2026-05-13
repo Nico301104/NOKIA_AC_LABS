@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
 export default function Login() {
@@ -11,7 +11,7 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -19,7 +19,7 @@ export default function Login() {
       await login(username, password)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Autentificare eșuată')
+      setError(err instanceof Error ? err.message : 'Autentificare eșuată')
     } finally {
       setLoading(false)
     }
@@ -27,12 +27,10 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      {/* Orbs decorative — adâncime atmosferică */}
       <div className="orb orb-violet" />
       <div className="orb orb-green" />
 
       <div className="login-container">
-        {/* Brand */}
         <div className="brand">
           <div className="brand-logo">
             <svg viewBox="0 0 40 40" fill="none">
@@ -46,7 +44,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Card 3D */}
         <div className="login-card">
           <div className="card-glow" />
           <div className="card-inner">
@@ -110,7 +107,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Footer mic */}
         <div className="footer-mini">
           <span>v0.1.0</span>
           <span className="dot">·</span>
