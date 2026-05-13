@@ -1,0 +1,22 @@
+from app.database import SessionLocal
+from app.models import User
+from app.auth import get_password_hash
+
+db = SessionLocal()
+
+password = "admin123"
+hashed_password = get_password_hash(password)
+
+new_user = User(
+    FullName="testuser",
+    Email="testuser@example.com",
+    Team="Team2",
+    hashed_password=hashed_password,
+    Role="admin"
+)
+
+db.add(new_user)
+db.commit()
+db.refresh(new_user)
+
+print(f"User created with ID: {new_user.UserID}")
