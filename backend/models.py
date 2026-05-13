@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from database import Base
+from app.database import Base
 
 class Team(Base):
     __tablename__ = "Teams"
