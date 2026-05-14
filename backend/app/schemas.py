@@ -19,4 +19,4 @@ class UserOut(BaseModel): #Model for user output
 
     class Config:
         from_attributes = True
-        validate_by_name = True
+        populate_by_name = True
