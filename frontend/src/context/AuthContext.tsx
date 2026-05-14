@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
+import api from '../services/api'
 
 interface User {
   username: string
   role: string
+  team: string
 }
 
 interface AuthContextType {
@@ -26,18 +28,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   })
 
-  // Placeholder login — fără backend deocamdată.
-  // Când integrezi backendul, înlocuiești corpul cu un apel api.post('/auth/login', ...)
   const login = async (username: string, password: string): Promise<User> => {
     if (!username || !password) {
       throw new Error('Username și parolă obligatorii')
     }
-    const mockUser: User = { username, role: 'engineer' }
-    const mockToken = 'placeholder-token-' + Date.now()
-    localStorage.setItem('auth_token', mockToken)
-    localStorage.setItem('auth_user', JSON.stringify(mockUser))
-    setUser(mockUser)
-    return mockUser
+
+    try {
+      const tokenRes = await api.post('/auth/login', { username, password })
+      const { access_token } = tokenRes.data
+      localStorage.setItem('auth_token', access_token)
+
+      const meRes = await api.get('/auth/me')
+      const loggedUser: User = {
+        username: meRes.data.username,
+        role: meRes.data.role,
+        team: meRes.data.team,
+      }
+      localStorage.setItem('auth_user', JSON.stringify(loggedUser))
+      setUser(loggedUser)
+      return loggedUser
+    } catch (err: unknown) {
+      localStorage.removeItem('auth_token')
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      throw new Error(detail ?? 'Autentificare eșuată')
+    }
   }
 
   const logout = () => {
