@@ -60,13 +60,13 @@
 html, body, #root {
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: var(--font-body);
   color: var(--text-primary);
   background: var(--bg-void);
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 

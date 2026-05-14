@@ -1,10 +1,12 @@
 .login-page {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   display: grid;
   place-items: center;
   padding: 2rem 1.5rem;
   position: relative;
   perspective: 1800px;
+  overflow: hidden;
 }
 
 /* Orbs atmosferice */
@@ -343,6 +345,26 @@
 
 /* Responsive */
 @media (max-width: 520px) {
-  .card-inner { padding: 2rem 1.5rem; }
-  .card-title { font-size: 2rem; }
+  .login-container { gap: 1.5rem; }
+  .card-inner { padding: 1.5rem 1.25rem; }
+  .card-title { font-size: 1.75rem; }
+  .card-subtitle { font-size: 0.85rem; margin-bottom: 1.25rem; }
+  .login-form { gap: 1rem; }
+}
+
+@media (max-height: 700px) {
+  .login-container { gap: 1rem; }
+  .card-inner { padding: 1.25rem 1.5rem; }
+  .card-title { font-size: 1.75rem; }
+  .card-subtitle { margin-bottom: 1rem; }
+  .card-header { margin-bottom: 0.75rem; }
+  .login-form { gap: 0.75rem; }
+  .btn-primary { padding: 0.75rem 1.25rem; margin-top: 0; }
+  .input-wrap input { padding: 0.7rem 1rem; }
+  .footer-mini { display: none; }
+}
+
+@media (max-height: 560px) {
+  .brand { display: none; }
+  .card-inner { padding: 1rem 1.25rem; }
 }
