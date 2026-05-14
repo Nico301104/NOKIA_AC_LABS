@@ -368,3 +368,16 @@
   .brand { display: none; }
   .card-inner { padding: 1rem 1.25rem; }
 }
+
+@media (max-height: 480px) {
+  .login-page {
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+  .card-subtitle { display: none; }
+  .card-header { margin-bottom: 0.5rem; }
+  .card-title { font-size: 1.4rem; margin-bottom: 0.2rem; }
+  .login-form { gap: 0.5rem; }
+  .input-wrap input { padding: 0.5rem 0.9rem; }
+  .btn-primary { padding: 0.55rem 1rem; }
+}
