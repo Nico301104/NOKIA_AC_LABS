@@ -11,7 +11,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '3rem 2rem', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ height: '100vh', overflow: 'hidden', padding: '2rem', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem' }}>
           Dashboard<span style={{ color: 'var(--signal-400)' }}>.</span>

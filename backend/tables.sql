@@ -9,7 +9,10 @@ CREATE TABLE Users (
     UserID INT PRIMARY KEY,
     FullName VARCHAR(100) NOT NULL UNIQUE,
     Email VARCHAR(100),
+    HashedPassword VARCHAR(255) NOT NULL,
     Team VARCHAR(50) NOT NULL, -- Legatura catre tabela Teams
+    Role VARCHAR(20) 
+        CHECK (Role IN ('Admin', 'User', 'Manager', 'Support')),
     FOREIGN KEY (Team) REFERENCES Teams(TeamName)
 );
 

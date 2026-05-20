@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import User
-from app.schemas import UserLogin, Token, UserOut
-from app.auth import verify_password, create_access_token,get_current_user
-from app.config import settings
+from ..database import get_db
+from ..models import User
+from ..schemas import UserLogin, Token, UserOut
+from ..auth import verify_password, create_access_token, get_current_user
+from ..config import settings
 
 # Authentication router for handling login and user info retrieval
 
@@ -16,7 +16,7 @@ router = APIRouter(
 # Login endpoint to authenticate users and return JWT tokens
 @router.post("/login", response_model=Token) 
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.FullName == user_credentials.username).first() # Look in the database for a user with the given username
+    user = db.query(User).filter(User.FullName == user_credentials.FullName).first()
     if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -99,10 +99,6 @@ export default function Login() {
                 </svg>
               </button>
 
-              <p className="placeholder-note">
-                <span className="note-tag">PLACEHOLDER</span>
-                Conectarea reală va folosi API-ul C# (M5+). Acum orice user/parolă funcționează.
-              </p>
             </form>
           </div>
         </div>
