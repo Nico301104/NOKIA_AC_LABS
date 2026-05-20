@@ -1,13 +1,14 @@
 import os
 from datetime import datetime, timedelta, timezone
+import token
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from .database import get_db
-from .models import User
-from .config import settings
+from app.database import get_db
+from models import User
+from app.config import settings
 
 # Authentication utilities for password hashing, token creation, and user retrieval
 
@@ -46,7 +47,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
     
     # Verify that the user exists in the database
-    user = db.query(User).filter(User.FullName == username).first()
+    user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise credentials_exception
     return user

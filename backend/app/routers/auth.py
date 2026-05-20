@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User
-from ..schemas import UserLogin, Token, UserOut
-from ..auth import verify_password, create_access_token,get_current_user
-from ..config import settings
+from app.database import get_db
+from models import User
+from app.schemas import UserLogin, Token, UserOut
+from app.auth import verify_password, create_access_token,get_current_user
+from app.config import settings
 
 # Authentication router for handling login and user info retrieval
 

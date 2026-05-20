@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-from backend.app.database import Base
+from app.database import Base
 
 class Team(Base):
     __tablename__ = "Teams"
@@ -12,6 +13,7 @@ class User(Base):
     UserID = Column(Integer, primary_key=True)
     FullName = Column(String(100), unique=True, nullable=False)
     Email = Column(String(100))
+    HashedPassword = Column(String(255), nullable=False)
     Team = Column(String(50), ForeignKey("Teams.TeamName"), nullable=False)
 
 class Ticket(Base):
