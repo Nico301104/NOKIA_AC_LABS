@@ -1,5 +1,5 @@
 from app.database import SessionLocal
-from app.models import User
+from models import User
 from app.auth import get_password_hash
 
 db = SessionLocal()
@@ -12,7 +12,7 @@ new_user = User(
     Email="testuser@example.com",
     Team="Team2",
     hashed_password=hashed_password,
-    Role="admin"
+
 )
 
 db.add(new_user)
