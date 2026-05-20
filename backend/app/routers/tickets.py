@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, select
 from typing import Literal
 import math
+import io
+import pandas as pd
 
-from app.database import get_db
-import models
-from app.auth import schemas
+from ..database import get_db, engine
+from ..models import Ticket, User
+from ..schemas import PaginatedTickets
+from ..auth import get_current_user
 
 # Router for handling ticket-related endpoints
 
@@ -16,7 +20,7 @@ router = APIRouter(
 )
 
 # Endpoint to retrieve a paginated list of tickets with sorting options
-@router.get("/", response_model=schemas.PaginatedTickets)
+@router.get("/", response_model=PaginatedTickets)
 def get_tickets(
     page: int = Query(1, ge=1, description="Page number"),
     limit: Literal[10, 25, 50]= Query(10, description="Number of items per page"),
@@ -24,8 +28,8 @@ def get_tickets(
     sort_order: Literal["asc", "desc"] = Query("desc", description="Sort order (ascending or descending)"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.Ticket) # Start a query on the Ticket model to retrieve all tickets from the database
-    column_to_sort = getattr(models.Ticket, sort_by) # Get the column to sort by based on the sort_by parameter (Submit_Datetime, Priority, or Status)
+    query = db.query(Ticket) # Start a query on the Ticket model to retrieve all tickets from the database
+    column_to_sort = getattr(Ticket, sort_by) # Get the column to sort by based on the sort_by parameter (Submit_Datetime, Priority, or Status)
     
     if sort_order == "asc":
         query = query.order_by(asc(column_to_sort))
@@ -46,3 +50,23 @@ def get_tickets(
         "page": page,
         "pages": total_pages
     }
+
+
+@router.get("/export")
+def export_tickets(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Export all tickets as CSV (authenticated).
+
+    Returns a StreamingResponse with Content-Disposition header so browsers download `tickets.csv`.
+    """
+    # Build a SELECT for the tickets table and load into a DataFrame using the engine
+    stmt = select(Ticket.__table__)
+    df = pd.read_sql(stmt, con=engine)
+
+    # Ensure CSV contains all columns and use default formatting
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_data = csv_buffer.getvalue()
+    csv_buffer.close()
+
+    headers = {"Content-Disposition": "attachment; filename=tickets.csv"}
+    return StreamingResponse(iter([csv_data]), media_type="text/csv", headers=headers)
