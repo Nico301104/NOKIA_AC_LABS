@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
 from typing import List, Optional
 
@@ -17,6 +17,7 @@ class UserOut(BaseModel): #Model for user output
 
     FullName: str = Field(alias="FullName")
     Team: str = Field(alias="Team")
+    Role: str = Field(alias="Role", default="user")
 
     class Config:
         from_attributes = True
@@ -24,35 +25,34 @@ class UserOut(BaseModel): #Model for user output
         
 class TicketOut(BaseModel): #Model for ticket output
     Ticket_Number: str
-    Status: str
-    Priority: str
-    Company: str
-    Project: str
-    Team: str
-    Assigned_Person: str
-    Service: str
-    Description: str
-    Notes: str
-    Resolution: str
-    
-    # Categorii
-    Cat_T1: str
-    Cat_T2: str
-    Cat_T3: str
-    
-    # Timp și Date
-    Submit_Datetime: str
-    Resolved_Datetime: str = None
-    Closed_Datetime: str = None
-    Last_Modified: str = None
-    Estimated_Resolution: str = None
-    
-    # Altele
-    Resolution_Category: str = None
-    Pending_Duration: int = None
+    Status: Optional[str] = None
+    Priority: Optional[str] = None
+    Company: Optional[str] = None
+    Project: Optional[str] = None
+    Team: Optional[str] = None
+    Assigned_Person: Optional[str] = None
+    Service: Optional[str] = None
+    Description: Optional[str] = None
+    Notes: Optional[str] = None
+    Resolution: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    # Categorii
+    Cat_T1: Optional[str] = None
+    Cat_T2: Optional[str] = None
+    Cat_T3: Optional[str] = None
+
+    # Timp și Date — stocate ca datetime, serializate ca ISO string
+    Submit_Datetime: Optional[datetime] = None
+    Resolved_Datetime: Optional[datetime] = None
+    Closed_Datetime: Optional[datetime] = None
+    Last_Modified: Optional[datetime] = None
+    Estimated_Resolution: Optional[datetime] = None
+
+    # Altele
+    Resolution_Category: Optional[str] = None
+    Pending_Duration: Optional[int] = None
+
+    model_config = {"from_attributes": True}
         
 class PaginatedTickets(BaseModel): #Model for paginated ticket response
     items: list[TicketOut]

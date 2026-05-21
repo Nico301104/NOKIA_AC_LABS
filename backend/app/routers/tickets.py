@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc, select
+from sqlalchemy import desc, asc, select, case
 from typing import Literal
 import math
 import io
@@ -23,14 +23,25 @@ router = APIRouter(
 @router.get("/", response_model=PaginatedTickets)
 def get_tickets(
     page: int = Query(1, ge=1, description="Page number"),
-    limit: Literal[10, 25, 50]= Query(10, description="Number of items per page"),
+    limit: int = Query(10, description="Number of items per page (10, 25 or 50)"),
     sort_by: Literal["Submit_Datetime","Priority", "Status"] = Query("Submit_Datetime", description="Field to sort by"),
     sort_order: Literal["asc", "desc"] = Query("desc", description="Sort order (ascending or descending)"),
     db: Session = Depends(get_db)
 ):
     query = db.query(Ticket) # Start a query on the Ticket model to retrieve all tickets from the database
-    column_to_sort = getattr(Ticket, sort_by) # Get the column to sort by based on the sort_by parameter (Submit_Datetime, Priority, or Status)
-    
+
+    if sort_by == "Priority":
+        priority_order = case(
+            (Ticket.Priority == "Critical", 1),
+            (Ticket.Priority == "High", 2),
+            (Ticket.Priority == "Medium", 3),
+            (Ticket.Priority == "Low", 4),
+            else_=5
+        )
+        column_to_sort = priority_order
+    else:
+        column_to_sort = getattr(Ticket, sort_by)
+
     if sort_order == "asc":
         query = query.order_by(asc(column_to_sort))
     else:

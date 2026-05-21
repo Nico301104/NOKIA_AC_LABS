@@ -40,9 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const meRes = await api.get('/auth/me')
       const loggedUser: User = {
-        username: meRes.data.username,
-        role: meRes.data.role,
-        team: meRes.data.team,
+        username: meRes.data.FullName,
+        role: meRes.data.Role ?? 'user',
+        team: meRes.data.Team,
       }
       localStorage.setItem('auth_user', JSON.stringify(loggedUser))
       setUser(loggedUser)

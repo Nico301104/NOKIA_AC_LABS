@@ -1,39 +1,151 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import NavBar from '../components/NavBar'
+import api from '../services/api'
+import './Dashboard.css'
+
+interface Ticket {
+  Ticket_Number: string
+  Status: string
+  Priority: string
+  Company: string
+  Project: string
+  Team: string
+  Assigned_Person: string
+  Service: string
+  Submit_Datetime: string | null
+}
+
+function statusStyle(status: string) {
+  const map: Record<string, { bg: string; color: string }> = {
+    Open:     { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
+    Closed:   { bg: 'rgba(100,116,139,0.12)', color: '#475569' },
+    Resolved: { bg: 'rgba(34,197,94,0.12)',   color: '#16a34a' },
+    Pending:  { bg: 'rgba(234,179,8,0.12)',   color: '#b45309' },
+  }
+  return map[status] ?? { bg: 'rgba(37,99,235,0.1)', color: 'var(--violet-700)' }
+}
+
+function priorityColor(priority: string) {
+  const map: Record<string, string> = { Critical: '#dc2626', High: '#ea580c', Medium: '#d97706', Low: '#16a34a' }
+  return map[priority] ?? 'var(--text-muted)'
+}
+
+function formatDate(dt: string | null | undefined) {
+  if (!dt) return '—'
+  try { return new Date(dt).toLocaleDateString('ro-RO') } catch { return dt }
+}
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  useEffect(() => {
+    api.get('/tickets/', { params: { page: 1, limit: 10 } })
+      .then(r => { setTickets(r.data.items); setTotal(r.data.total) })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const open      = tickets.filter(t => t.Status === 'Open').length
+  const inLucru   = tickets.filter(t => t.Status === 'Pending' || t.Status === 'In Progress').length
+  const finalizate = tickets.filter(t => t.Status === 'Closed' || t.Status === 'Resolved').length
+  const critical  = tickets.filter(t => t.Priority === 'Critical').length
+
+  const stats = [
+    { value: total,      label: 'TOTAL TICHETE', color: 'var(--violet-500)', highlight: false },
+    { value: open,       label: 'DESCHISE',      color: 'var(--signal-500)', highlight: false },
+    { value: inLucru,    label: 'ÎN LUCRU',      color: '#d97706',           highlight: false },
+    { value: finalizate, label: 'FINALIZATE',    color: '#16a34a',           highlight: false },
+    { value: critical,   label: 'CRITICE',       color: '#dc2626',           highlight: true  },
+  ]
 
   return (
-    <div style={{ height: '100vh', overflow: 'hidden', padding: '2rem', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem' }}>
-          Dashboard<span style={{ color: 'var(--signal-400)' }}>.</span>
-        </h1>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: '0.6rem 1.2rem',
-            border: '1px solid var(--graphite-700)',
-            borderRadius: 10,
-            color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
-            letterSpacing: '0.1em'
-          }}
-        >
-          LOGOUT
-        </button>
+    <div className="dashboard">
+      <NavBar />
+      <div className="db-content">
+
+        <div className="db-stats">
+          {stats.map(s => (
+            <div key={s.label} className={`db-stat-card${s.highlight ? ' db-stat-card--critical' : ''}`}>
+              <div className="db-stat-accent" style={{ '--accent': s.color } as React.CSSProperties} />
+              <div className="db-stat-value">{loading ? '—' : s.value}</div>
+              <div className="db-stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="db-table-section">
+          <div className="db-table-topbar">
+            <span className="db-section-label">TICHETE RECENTE</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {!loading && <span className="db-section-count">{tickets.length} rezultate</span>}
+              <button
+                onClick={() => navigate('/tickets')}
+                style={{
+                  padding: '0.25rem 0.7rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.58rem',
+                  letterSpacing: '0.15em',
+                  color: 'var(--violet-700)',
+                  border: '1px solid rgba(37,99,235,0.25)',
+                  borderRadius: '5px',
+                  background: 'rgba(37,99,235,0.06)',
+                  cursor: 'pointer',
+                }}
+              >
+                TOATE →
+              </button>
+            </div>
+          </div>
+
+          <div className="db-table-wrap">
+            <div style={{ overflowY: 'auto', height: '100%' }}>
+              {loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', letterSpacing: '0.2em' }}>
+                  SE ÎNCARCĂ...
+                </div>
+              ) : (
+                <table className="db-table">
+                  <thead>
+                    <tr>
+                      <th>TICKET #</th><th>STATUS</th><th>PRIORITATE</th>
+                      <th>COMPANIE</th><th>PROIECT</th><th>ECHIPĂ</th>
+                      <th>PERSOANĂ</th><th>SERVICIU</th><th>DATA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tickets.map(t => {
+                      const ss = statusStyle(t.Status)
+                      const pc = priorityColor(t.Priority)
+                      return (
+                        <tr key={t.Ticket_Number} className={t.Priority === 'Critical' ? 'db-row--critical' : ''}>
+                          <td><span className="db-ticket-id">{t.Ticket_Number}</span></td>
+                          <td><span className="db-badge" style={{ background: ss.bg, color: ss.color }}>{t.Status}</span></td>
+                          <td>
+                            <span className="db-priority">
+                              <span className="db-priority-dot" style={{ background: pc, boxShadow: `0 0 6px ${pc}` }} />
+                              {t.Priority}
+                            </span>
+                          </td>
+                          <td className="db-td-body">{t.Company}</td>
+                          <td className="db-td-body">{t.Project}</td>
+                          <td className="db-td-body">{t.Team}</td>
+                          <td className="db-td-body">{t.Assigned_Person}</td>
+                          <td><span className="db-service">{t.Service}</span></td>
+                          <td className="db-td-body">{formatDate(t.Submit_Datetime)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
-      <p style={{ color: 'var(--text-secondary)' }}>
-        Salut, <strong>{user?.username}</strong>. Placeholder dashboard — se completează în M5+.
-      </p>
     </div>
   )
 }
