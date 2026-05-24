@@ -1,64 +1,86 @@
-# Nokia Ticket Filter — Frontend (M4)
+# Nokia Ticket Dashboard — Frontend
 
-React + Vite + Axios + React Router. Doar frontend deocamdată.
+React + TypeScript + Vite + Axios + React Router.
 
 ## Cerințe
 
 - **Node 18+** (verifică: `node -v`)
-- npm sau pnpm sau yarn
+- Backend FastAPI pornit pe portul **8000**
 
 ## Setup
 
 ```bash
-# 1. Instalează dependențele
+cd frontend
 npm install
-
-# 2. Pornește dev server-ul
 npm run dev
 ```
 
-Aplicația rulează pe **http://localhost:5173**. Ruta `/login` afișează placeholder-ul cu temă cyber-telecom (mov / verde / grafit, aspect 3D).
+Aplicația rulează pe **http://localhost:5173**.
 
 ## Structură
 
 ```
-src/
-├── main.jsx                  # Entry point (BrowserRouter + AuthProvider)
-├── App.jsx                   # Routing principal
-├── index.css                 # Temă globală + fundal cu profunzime
+frontend/src/
+├── main.tsx                        # Entry point (BrowserRouter + AuthProvider)
+├── App.tsx                         # Routing principal + rute protejate
+├── index.css                       # Temă globală (mov / grafit / alb)
+├── vite-env.d.ts                   # Tipuri Vite
 ├── pages/
-│   ├── Login.jsx + Login.css # Login placeholder cu aspect 3D
-│   ├── Dashboard.jsx         # Protejat
-│   └── Tickets.jsx           # Protejat
-├── services/
-│   └── api.js                # Instanță Axios + interceptors (JWT)
+│   ├── Login.tsx + Login.css       # Autentificare cu JWT
+│   ├── Dashboard.tsx + Dashboard.css  # Panou principal cu statistici și tabel
+│   └── Tickets.tsx                 # Listă completă tichete cu sortare și paginare
+├── components/
+│   └── NavBar.tsx                  # Bară navigare cu logout
 ├── context/
-│   └── AuthContext.jsx       # Stare globală autentificare
-└── components/
-    └── ProtectedRoute.jsx    # Guard pentru rute protejate
+│   └── AuthContext.tsx             # Stare globală autentificare (token JWT)
+└── services/
+    └── api.ts                      # Instanță Axios cu interceptor JWT
 ```
 
-## Done — checklist M4
+## Pagini
 
-- [x] `npm run dev` pornit pe portul **5173**
-- [x] Ruta `/login` afișează placeholder
-- [x] Axios instalat cu instanță centralizată (`src/services/api.js`)
-- [x] React Router cu rute protejate
-- [x] `AuthContext` funcțional (fără backend deocamdată)
-- [x] Estetică modernă 3D — mov / verde / grafit
+### Login (`/login`)
+- Formular de autentificare cu username și parolă
+- Trimite `POST /auth/login` și salvează token-ul JWT în `localStorage`
+- Redirecționează automat la `/dashboard` dacă utilizatorul e deja autentificat
 
-## Configurare backend (când va fi gata)
+### Dashboard (`/dashboard`)
+- **Statistici** (5 carduri): Total tichete, Deschise, În lucru, Finalizate, Critice
+  - Cardul *Critice* are animație pulsantă roșie ca să iasă în evidență
+  - *În lucru* = `Pending` + `In Progress`
+  - *Finalizate* = `Closed` + `Resolved` (nu include Pending)
+- **Tabel tichete recente** — primele 10 tichete sortate după dată
+- Rândurile cu prioritate **Critical** sunt evidențiate cu bordură și fundal roșu
+- Buton **TOATE →** navighează la pagina completă de tichete
 
-Schimbi `VITE_API_URL` în `.env` și aliniezi portul cu CORS-ul din `Program.cs`:
+### Tichete (`/tickets`)
+- Tabel paginat cu toate tichetele (10 / 25 / 50 pe pagină)
+- **Sortare** după: Dată, Prioritate, Status — crescător sau descrescător
+  - Sortarea pe prioritate respectă ordinea: Critical → High → Medium → Low
+- Rândurile cu prioritate **Critical** sunt evidențiate cu bordură roșie
+- **Export CSV** — descarcă toate tichetele (necesită autentificare)
+- Paginare completă cu butoane de navigare
 
-```csharp
-// În backend C#
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+## Autentificare
+
+Token-ul JWT este stocat în `localStorage` sub cheia `token`. Instanța Axios din `services/api.ts` atașează automat header-ul `Authorization: Bearer <token>` la fiecare request. La logout, token-ul este șters și utilizatorul este redirecționat la `/login`.
+
+## Configurare
+
+URL-ul backend-ului se setează în `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:8000
 ```
 
-## Următorii pași (M5+)
+## Pornire completă (frontend + backend)
 
-- Login real prin `POST /api/auth/login` → JWT
-- Pagina Tickets cu filtre (status, prioritate, zonă, dată)
-- Detaliu tichet + acțiuni
+```bash
+# Terminal 1 — backend
+cd backend
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd frontend
+npm run dev
+```
