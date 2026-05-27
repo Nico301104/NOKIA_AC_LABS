@@ -1,7 +1,8 @@
 import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from database import Base
+from .database import Base
+
 
 class Company(Base):
     __tablename__ = 'COMPANIES'
@@ -76,7 +77,7 @@ class Priority(Base):
         return f"<Priority(id={self.priority_id}, name='{self.priority_name}')>"
 
 
-class IncidentTicket(Base):
+class Ticket(Base):
     __tablename__ = 'INCIDENT_TICKETS'
 
     ticket_number = Column('TICKET_NUMBER', String(50), primary_key=True)
