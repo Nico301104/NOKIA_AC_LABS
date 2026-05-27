@@ -9,7 +9,7 @@ import pandas as pd
 from openpyxl.styles import Font
 
 from ..database import get_db, engine
-from ..models import Ticket, User
+from ..models import IncidentTicket, User, Priority
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
 
@@ -49,28 +49,55 @@ def _build_xlsx_bytes(df: pd.DataFrame) -> bytes:
 def get_tickets(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, description="Number of items per page (10, 25 or 50)"),
-    sort_by: Literal["Submit_Datetime", "Priority", "Status"] = Query("Submit_Datetime", description="Field to sort by"),
-    sort_order: Literal["asc", "desc"] = Query("desc", description="Sort order (ascending or descending)"),
+    sort_by: Literal["Submit_Datetime", "Priority", "Status"] = Query(
+        "Submit_Datetime",
+        description="Field to sort by"
+    ),
+    sort_order: Literal["asc", "desc"] = Query(
+        "desc",
+        description="Sort order (ascending or descending)"
+    ),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Ticket)
+    query = db.query(IncidentTicket)
 
     if sort_by == "Priority":
+        query = query.outerjoin(
+            Priority,
+            IncidentTicket.priority_id == Priority.priority_id
+        )
+
         priority_order = case(
-            (Ticket.Priority == "Critical", 1),
-            (Ticket.Priority == "High", 2),
-            (Ticket.Priority == "Medium", 3),
-            (Ticket.Priority == "Low", 4),
+            (Priority.priority_name == "Critical", 1),
+            (Priority.priority_name == "High", 2),
+            (Priority.priority_name == "Medium", 3),
+            (Priority.priority_name == "Low", 4),
             else_=5
         )
-        column_to_sort = priority_order
-    else:
-        column_to_sort = getattr(Ticket, sort_by)
 
-    if sort_order == "asc":
-        query = query.order_by(asc(column_to_sort))
+        # desc = Critical first
+        if sort_order == "desc":
+            query = query.order_by(priority_order.asc())
+        else:
+            query = query.order_by(priority_order.desc())
+
+    elif sort_by == "Status":
+        query = query.outerjoin(
+            Status,
+            IncidentTicket.status_id == Status.status_id
+        )
+
+        if sort_order == "desc":
+            query = query.order_by(Status.status_name.desc())
+        else:
+            query = query.order_by(Status.status_name.asc())
+
     else:
-        query = query.order_by(desc(column_to_sort))
+        # Submit_Datetime
+        if sort_order == "desc":
+            query = query.order_by(IncidentTicket.submit_datetime.desc())
+        else:
+            query = query.order_by(IncidentTicket.submit_datetime.asc())
 
     total_items = query.count()
 
@@ -86,7 +113,6 @@ def get_tickets(
         "pages": total_pages
     }
 
-
 @router.get("/export")
 def export_tickets(
     format: Literal["csv", "xlsx"] = Query("csv", description="Export format: csv or xlsx"),
@@ -94,7 +120,7 @@ def export_tickets(
     current_user: User = Depends(get_current_user),
 ):
     """Export all tickets as CSV or XLSX (authenticated)."""
-    stmt = select(Ticket.__table__)
+    stmt = select(IncidentTicket.__table__)
     df = pd.read_sql(stmt, con=engine)
 
     if format == "xlsx":
