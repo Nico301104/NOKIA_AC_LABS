@@ -9,13 +9,13 @@ type Limit = 10 | 25 | 50
 
 interface Ticket {
   Ticket_Number: string
-  Status: string
-  Priority: string
-  Company: string
-  Project: string
-  Team: string
-  Assigned_Person: string
-  Service: string
+  Status: string | null
+  Priority: string | null
+  Company: string | null
+  Project: string | null
+  Team: string | null
+  Assigned_Person: string | null
+  Service: string | null
   Submit_Datetime: string | null
 }
 
@@ -26,19 +26,19 @@ interface PageData {
   pages: number
 }
 
-function statusStyle(status: string) {
+function statusStyle(status: string | null) {
   const map: Record<string, { bg: string; color: string }> = {
     Open:     { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
     Closed:   { bg: 'rgba(100,116,139,0.12)', color: '#475569' },
     Resolved: { bg: 'rgba(34,197,94,0.12)',   color: '#16a34a' },
     Pending:  { bg: 'rgba(234,179,8,0.12)',   color: '#b45309' },
   }
-  return map[status] ?? { bg: 'rgba(37,99,235,0.1)', color: 'var(--violet-700)' }
+  return (status ? map[status] : undefined) ?? { bg: 'rgba(37,99,235,0.1)', color: 'var(--violet-700)' }
 }
 
-function priorityColor(priority: string) {
+function priorityColor(priority: string | null) {
   const map: Record<string, string> = { Critical: '#dc2626', High: '#ea580c', Medium: '#d97706', Low: '#16a34a' }
-  return map[priority] ?? 'var(--text-muted)'
+  return (priority ? map[priority] : undefined) ?? 'var(--text-muted)'
 }
 
 function formatDate(dt: string | null | undefined) {
@@ -230,11 +230,11 @@ export default function Tickets() {
                               {t.Priority}
                             </span>
                           </td>
-                          <td className="db-td-body">{t.Company}</td>
-                          <td className="db-td-body">{t.Project}</td>
-                          <td className="db-td-body">{t.Team}</td>
-                          <td className="db-td-body">{t.Assigned_Person}</td>
-                          <td><span className="db-service">{t.Service}</span></td>
+                          <td className="db-td-body">{t.Company ?? '—'}</td>
+                          <td className="db-td-body">{t.Project ?? '—'}</td>
+                          <td className="db-td-body">{t.Team ?? '—'}</td>
+                          <td className="db-td-body">{t.Assigned_Person ?? '—'}</td>
+                          <td><span className="db-service">{t.Service ?? '—'}</span></td>
                           <td className="db-td-body">{formatDate(t.Submit_Datetime)}</td>
                         </tr>
                       )
