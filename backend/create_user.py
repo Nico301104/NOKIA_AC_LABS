@@ -19,4 +19,4 @@ db.add(new_user)
 db.commit()
 db.refresh(new_user)
 
-print(f"User created with ID: {new_user.UserID}")
+print(f"User created with ID: {new_user.User_id}")
