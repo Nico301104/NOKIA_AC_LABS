@@ -8,7 +8,8 @@ import io
 import pandas as pd
 
 from ..database import get_db, engine
-from ..models import Ticket, User
+# 🌟 Corectat: Importăm IncidentTicket în loc de Ticket
+from ..models import IncidentTicket, User
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
 
@@ -28,19 +29,22 @@ def get_tickets(
     sort_order: Literal["asc", "desc"] = Query("desc", description="Sort order (ascending or descending)"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Ticket) # Start a query on the Ticket model to retrieve all tickets from the database
+    # 🌟 Corectat: IncidentTicket în loc de Ticket
+    query = db.query(IncidentTicket) # Start a query on the IncidentTicket model to retrieve all tickets from the database
 
     if sort_by == "Priority":
         priority_order = case(
-            (Ticket.Priority == "Critical", 1),
-            (Ticket.Priority == "High", 2),
-            (Ticket.Priority == "Medium", 3),
-            (Ticket.Priority == "Low", 4),
+            # 🌟 Corectat: IncidentTicket în loc de Ticket
+            (IncidentTicket.Priority == "Critical", 1),
+            (IncidentTicket.Priority == "High", 2),
+            (IncidentTicket.Priority == "Medium", 3),
+            (IncidentTicket.Priority == "Low", 4),
             else_=5
         )
         column_to_sort = priority_order
     else:
-        column_to_sort = getattr(Ticket, sort_by)
+        # 🌟 Corectat: IncidentTicket în loc de Ticket
+        column_to_sort = getattr(IncidentTicket, sort_by)
 
     if sort_order == "asc":
         query = query.order_by(asc(column_to_sort))
@@ -70,7 +74,8 @@ def export_tickets(db: Session = Depends(get_db), current_user: User = Depends(g
     Returns a StreamingResponse with Content-Disposition header so browsers download `tickets.csv`.
     """
     # Build a SELECT for the tickets table and load into a DataFrame using the engine
-    stmt = select(Ticket.__table__)
+    # 🌟 Corectat: IncidentTicket în loc de Ticket
+    stmt = select(IncidentTicket.__table__)
     df = pd.read_sql(stmt, con=engine)
 
     # Ensure CSV contains all columns and use default formatting
