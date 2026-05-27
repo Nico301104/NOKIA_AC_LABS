@@ -12,7 +12,7 @@ class Company(Base):
 
     # Relații
     teams = relationship('Team', back_populates='company', cascade='all, delete-orphan')
-    tickets = relationship('IncidentTicket', back_populates='company')
+    tickets = relationship('IncidentTicket', back_populates='company')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Company(id={self.company_id}, name='{self.company_name}')>"
@@ -28,7 +28,7 @@ class Team(Base):
     # Relații
     company = relationship('Company', back_populates='teams')
     users = relationship('User', back_populates='team_relationship')
-    tickets = relationship('IncidentTicket', back_populates='team')
+    tickets = relationship('IncidentTicket', back_populates='team')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Team(id={self.team_id}, name='{self.team_name}')>"
@@ -37,17 +37,18 @@ class Team(Base):
 class User(Base):
     __tablename__ = 'USERS'
 
-    user_id = Column('USER_ID', Integer, primary_key=True, autoincrement=True)
-    full_name = Column('FULL_NAME', String(100), nullable=False, unique=True)
-    email = Column('EMAIL', String(100))
-    team = Column('TEAM', String(100), ForeignKey('TEAMS.TEAM_NAME'))
+    User_id = Column('USER_ID', Integer, primary_key=True, autoincrement=True)
+    FullName = Column('FULL_NAME', String(100), nullable=False, unique=True)
+    Email = Column('EMAIL', String(100))
+    Team = Column('TEAM', String(100), ForeignKey('TEAMS.TEAM_NAME'))
+    hashed_password = Column('HASHED_PASSWORD', String(255), nullable=True)  # Păstrat perfect!
 
     # Relații
     team_relationship = relationship('Team', back_populates='users')
-    tickets = relationship('IncidentTicket', back_populates='assigned_user')
+    tickets = relationship('IncidentTicket', back_populates='assigned_user')  # Legat de IncidentTicket
 
     def __repr__(self):
-        return f"<User(id={self.user_id}, full_name='{self.full_name}', email='{self.email}')>"
+        return f"<User(id={self.user_id}, full_name='{self.FullName}', email='{self.Email}')>"
 
 
 class Status(Base):
@@ -57,7 +58,7 @@ class Status(Base):
     status_name = Column('STATUS_NAME', String(50), nullable=False)
 
     # Relații
-    tickets = relationship('IncidentTicket', back_populates='status')
+    tickets = relationship('IncidentTicket', back_populates='status')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Status(id={self.status_id}, name='{self.status_name}')>"
@@ -70,14 +71,14 @@ class Priority(Base):
     priority_name = Column('PRIORITY_NAME', String(50), nullable=False)
 
     # Relații
-    tickets = relationship('IncidentTicket', back_populates='priority')
+    tickets = relationship('IncidentTicket', back_populates='priority')  # Legat de IncidentTicket
     sla_configs = relationship('SlaConfig', back_populates='priority')
 
     def __repr__(self):
         return f"<Priority(id={self.priority_id}, name='{self.priority_name}')>"
 
 
-class Ticket(Base):
+class IncidentTicket(Base):  # Redenumit din Ticket în IncidentTicket ca să se pupe cu erorile din consolă
     __tablename__ = 'INCIDENT_TICKETS'
 
     ticket_number = Column('TICKET_NUMBER', String(50), primary_key=True)
