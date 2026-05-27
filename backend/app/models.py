@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from database import Base
+from .database import Base
 
 class Company(Base):
     __tablename__ = 'COMPANIES'
@@ -40,7 +40,7 @@ class User(Base):
     full_name = Column('FULL_NAME', String(100), nullable=False, unique=True)
     email = Column('EMAIL', String(100))
     team = Column('TEAM', String(100), ForeignKey('TEAMS.TEAM_NAME'))
-
+    password = Column('HASHED_PASSWORD', String(255), nullable=False)
     # Relații
     team_relationship = relationship('Team', back_populates='users')
     tickets = relationship('IncidentTicket', back_populates='assigned_user')
