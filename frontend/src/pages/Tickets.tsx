@@ -121,7 +121,7 @@ export default function Tickets() {
   const handleExport = async (format: 'csv' | 'xlsx') => {
     setExporting(format)
     try {
-      const r = await api.get('/tickets/export', { params: { format }, responseType: 'blob' })
+      const r = await api.get('/tickets/export', { params: { format, sort_by: sortBy.toLowerCase(), sort_order: sortOrder }, responseType: 'blob' })
       const url = URL.createObjectURL(new Blob([r.data]))
       const a = document.createElement('a')
       a.href = url; a.download = `tickets.${format}`
