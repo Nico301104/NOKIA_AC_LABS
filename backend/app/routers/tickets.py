@@ -95,6 +95,9 @@ def get_tickets(
             "Priority": r.get("Priority"),
             "Company": r.get("Company"),
             "Team": r.get("Team"),
+            "Project": r.get("Project"),
+            "Assigned_Person": r.get("Assigned_Person"),
+            "Service": r.get("Service"),
             "Submit_Datetime": r.get("Submit_Datetime")
         })
 
