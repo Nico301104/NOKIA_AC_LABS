@@ -35,8 +35,8 @@ BEGIN
             p.PRIORITY_NAME as Priority,
             c.COMPANY_NAME as Company,
             tm.TEAM_NAME as Team,
-            t.PRIORITY_ID as Priority_ID,
-            t.STATUS_ID as Status_ID,
+			t.PRIORITY_ID as Priority_ID,
+			t.STATUS_ID as Status_ID,
             t.SUBMIT_DATETIME as Submit_Datetime
         FROM INCIDENT_TICKETS t
         LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
@@ -66,7 +66,7 @@ BEGIN
                 WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
-                ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
+               -- ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
             END
         END ASC,
 
@@ -77,7 +77,7 @@ BEGIN
                 WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
-				ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
+				--ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
 			END
         END DESC
 
