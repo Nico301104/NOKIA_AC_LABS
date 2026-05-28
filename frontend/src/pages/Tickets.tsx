@@ -196,7 +196,7 @@ export default function Tickets() {
           <div className="db-table-topbar">
             <span className="db-section-label">LISTA TICHETE</span>
             <span className="db-section-count">
-              {data ? `${data.total} total · pagina ${data.page} din ${data.pages}` : '—'}
+              {data ? `pagina ${data.page}` : '—'}
             </span>
           </div>
           <div className="db-table-wrap">
@@ -247,17 +247,20 @@ export default function Tickets() {
         </div>
 
         {/* Pagination */}
-        {data && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexShrink: 0, paddingBottom: '0.25rem' }}>
-            <PagBtn onClick={() => setPage(1)}             disabled={page === 1}>«</PagBtn>
-            <PagBtn onClick={() => setPage(p => p - 1)}   disabled={page === 1}>‹</PagBtn>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
-              {page} / {data.pages}
-            </span>
-            <PagBtn onClick={() => setPage(p => p + 1)}   disabled={page === data.pages}>›</PagBtn>
-            <PagBtn onClick={() => setPage(data.pages)}   disabled={page === data.pages}>»</PagBtn>
-          </div>
-        )}
+        {data && (() => {
+          const hasMore = data.items.length >= limit
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexShrink: 0, paddingBottom: '0.25rem' }}>
+              <PagBtn onClick={() => setPage(1)}           disabled={page === 1}>«</PagBtn>
+              <PagBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</PagBtn>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
+                pagina {page}
+              </span>
+              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>›</PagBtn>
+              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>»</PagBtn>
+            </div>
+          )
+        })()}
 
       </div>
     </div>
