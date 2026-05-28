@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc, select, case
-from typing import Literal
+from sqlalchemy import desc, asc, select, case, text
+from typing import Optional, Any
 import math
 import io
 import pandas as pd
@@ -20,51 +20,97 @@ router = APIRouter(
     tags=["Tickets"] # All routes in this router will be tagged as "Tickets" in Swagger UI
 )
 
-# Endpoint to retrieve a paginated list of tickets with sorting options
+def exec_tickets_procedure(db: Session, params: dict[str, Any]):
+    query = text("""
+        EXEC dbo.GetPaginatedTickets
+            @search = :search,
+            @status = :status,
+            @team = :team,
+            @start_date = :start_date,
+            @end_date = :end_date,
+            @sort_by = :sort_by,
+            @sort_order = :sort_order,
+            @skip = :skip,
+            @limit = :limit
+    """)
+    return db.execute(query, params)
+  
+
+
+# Endpoint to retrieve a paginated list of tickets with sorting and filtering options
 @router.get("/", response_model=PaginatedTickets)
 def get_tickets(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(10, description="Number of items per page (10, 25 or 50)"),
-    sort_by: Literal["Submit_Datetime","Priority", "Status"] = Query("Submit_Datetime", description="Field to sort by"),
-    sort_order: Literal["asc", "desc"] = Query("desc", description="Sort order (ascending or descending)"),
-    db: Session = Depends(get_db)
+    page: int = 1,
+    limit: int = Query(10, enum = [10, 25, 50]),
+    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
+    sort_order: str = Query("DESC", enum = ["ASC", "DESC"]),
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    team: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db),
 ):
-    # 🌟 Corectat: IncidentTicket în loc de Ticket
-    query = db.query(IncidentTicket) # Start a query on the IncidentTicket model to retrieve all tickets from the database
+    skip = (page - 1) * limit
+    
+    query = text("""
+        EXEC dbo.GetPaginatedTickets
+            @search = :search,
+            @status = :status,
+            @team = :team,
+            @start_date = :start_date,
+            @end_date = :end_date,
+            @sort_by = :sort_by,
+            @sort_order = :sort_order,
+            @skip = :skip,
+            @limit = :limit
+    """)
+    
+    params = {
+        "search": search,
+        "status": status,
+        "team": team,
+        "start_date": start_date,
+        "end_date": end_date,
+        "sort_by": sort_by,
+        "sort_order": sort_order,
+        "skip": skip,
+        "limit": limit
+    }
+    
+    result = db.execute(query, params)
+    db_rows = result.fetchall()
+    formatted_items = []
+    
+    for row in db_rows:
+        r = dict(row._mapping)
+        formatted_items.append({
+            "Ticket_Number": r.get("Ticket_ID"),
+            "Description": r.get("Description"),
+            "Status": r.get("Status"),
+            "Priority": r.get("Priority"),
+            "Company": r.get("Company"),
+            "Team": r.get("Team"),
+            "Submit_Datetime": r.get("Submit_Datetime")
+        })
+   
+   
+    total_items = 0
+    cursor = result.cursor
+    if cursor and cursor.nextset():
+        count_row = cursor.fetchone()
+        if count_row:
+            total_items = count_row[0]
 
-    if sort_by == "Priority":
-        priority_order = case(
-            # 🌟 Corectat: IncidentTicket în loc de Ticket
-            (IncidentTicket.Priority == "Critical", 1),
-            (IncidentTicket.Priority == "High", 2),
-            (IncidentTicket.Priority == "Medium", 3),
-            (IncidentTicket.Priority == "Low", 4),
-            else_=5
-        )
-        column_to_sort = priority_order
-    else:
-        # 🌟 Corectat: IncidentTicket în loc de Ticket
-        column_to_sort = getattr(IncidentTicket, sort_by)
+    total_pages = math.ceil(total_items / limit) if total_items > 0 else 1
 
-    if sort_order == "asc":
-        query = query.order_by(asc(column_to_sort))
-    else:
-        query = query.order_by(desc(column_to_sort))
-        
-    total_items = query.count()
-    
-    skip = (page - 1) * limit # Calculate how many items to skip based on the current page and limit
-    tickets = query.offset(skip).limit(limit).all() # Retrieve tickets for the current page by applying the offset and limit to the query
-    
-    total_pages = math.ceil(total_items / limit) if total_items > 0 else 1 # Calculate total pages based on total items and limit, ensuring at least 1 page if there are items
-    
-    # Return the paginated response with the list of tickets, total items, current page, and total pages
     return {
-        "items": tickets,
+        "items": formatted_items,
         "total": total_items,
         "page": page,
         "pages": total_pages
     }
+ 
 
 
 @router.get("/export")

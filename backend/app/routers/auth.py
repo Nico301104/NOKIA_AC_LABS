@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from ..database import get_db
 from ..models import User
 from ..schemas import UserLogin, Token, UserOut
@@ -16,16 +17,31 @@ router = APIRouter(
 # Login endpoint to authenticate users and return JWT tokens
 @router.post("/login", response_model=Token) 
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.FullName == user_credentials.FullName).first()
-    if not user or not verify_password(user_credentials.password, user.hashed_password):
+        
+    query = text("""
+        SELECT 
+            USER_ID as id, 
+            FULL_NAME as full_name, 
+            EMAIL as email, 
+            TEAM as team, 
+            HASHED_PASSWORD as hashed_password 
+        FROM USERS 
+        WHERE RTRIM(FULL_NAME) = :full_name
+    """)
+    
+    result = db.execute(query, {"full_name": user_credentials.FullName})
+    user = result.fetchone()
+    
+    
+    if not user or not verify_password(user_credentials.Password, user._mapping["hashed_password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(data={"sub": user.FullName} # Create a JWT token with the username as the subject (sub) claim
-    )
+    access_token = create_access_token(data={"sub": user._mapping["full_name"]}) # Create a JWT token with the username as the subject (sub) claim
+
     return {
         "access_token": access_token, 
         "token_type": "bearer",

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 class UserLogin(BaseModel): #Model for user login request
     FullName: str 
-    password: str
+    Password: str
 
 class Token(BaseModel): #Model for token response
     access_token: str
