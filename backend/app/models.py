@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.orm import relationship
 from .database import Base
 
+
 class Company(Base):
     __tablename__ = 'COMPANIES'
 
@@ -11,7 +12,7 @@ class Company(Base):
 
     # Relații
     teams = relationship('Team', back_populates='company', cascade='all, delete-orphan')
-    tickets = relationship('IncidentTicket', back_populates='company')
+    tickets = relationship('IncidentTicket', back_populates='company')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Company(id={self.company_id}, name='{self.company_name}')>"
@@ -27,7 +28,7 @@ class Team(Base):
     # Relații
     company = relationship('Company', back_populates='teams')
     users = relationship('User', back_populates='team_relationship')
-    tickets = relationship('IncidentTicket', back_populates='team')
+    tickets = relationship('IncidentTicket', back_populates='team')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Team(id={self.team_id}, name='{self.team_name}')>"
@@ -36,17 +37,18 @@ class Team(Base):
 class User(Base):
     __tablename__ = 'USERS'
 
-    user_id = Column('USER_ID', Integer, primary_key=True, autoincrement=True)
-    full_name = Column('FULL_NAME', String(100), nullable=False, unique=True)
-    email = Column('EMAIL', String(100))
-    team = Column('TEAM', String(100), ForeignKey('TEAMS.TEAM_NAME'))
+    User_id = Column('USER_ID', Integer, primary_key=True, autoincrement=True)
+    FullName = Column('FULL_NAME', String(100), nullable=False, unique=True)
+    Email = Column('EMAIL', String(100))
+    Team = Column('TEAM', String(100), ForeignKey('TEAMS.TEAM_NAME'))
+    hashed_password = Column('HASHED_PASSWORD', String(255), nullable=True)  # Păstrat perfect!
 
     # Relații
     team_relationship = relationship('Team', back_populates='users')
-    tickets = relationship('IncidentTicket', back_populates='assigned_user')
+    tickets = relationship('IncidentTicket', back_populates='assigned_user')  # Legat de IncidentTicket
 
     def __repr__(self):
-        return f"<User(id={self.user_id}, full_name='{self.full_name}', email='{self.email}')>"
+        return f"<User(id={self.User_id}, full_name='{self.FullName}', email='{self.Email}')>"
 
 
 class Status(Base):
@@ -56,7 +58,7 @@ class Status(Base):
     status_name = Column('STATUS_NAME', String(50), nullable=False)
 
     # Relații
-    tickets = relationship('IncidentTicket', back_populates='status')
+    tickets = relationship('IncidentTicket', back_populates='status')  # Legat de IncidentTicket
 
     def __repr__(self):
         return f"<Status(id={self.status_id}, name='{self.status_name}')>"
@@ -69,37 +71,41 @@ class Priority(Base):
     priority_name = Column('PRIORITY_NAME', String(50), nullable=False)
 
     # Relații
-    tickets = relationship('IncidentTicket', back_populates='priority')
+    tickets = relationship('IncidentTicket', back_populates='priority')  # Legat de IncidentTicket
     sla_configs = relationship('SlaConfig', back_populates='priority')
 
     def __repr__(self):
         return f"<Priority(id={self.priority_id}, name='{self.priority_name}')>"
 
 
-class IncidentTicket(Base):
+class IncidentTicket(Base):  # Redenumit din Ticket în IncidentTicket ca să se pupe cu erorile din consolă
     __tablename__ = 'INCIDENT_TICKETS'
 
-    ticket_number = Column('TICKET_NUMBER', String(50), primary_key=True)
+    Ticket_Number = Column('TICKET_NUMBER', String(50), primary_key=True)
     company_id = Column('COMPANY_ID', Integer, ForeignKey('COMPANIES.COMPANY_ID'))
     team_id = Column('TEAM_ID', Integer, ForeignKey('TEAMS.TEAM_ID'))
     status_id = Column('STATUS_ID', Integer, ForeignKey('STATUSES.STATUS_ID'))
     priority_id = Column('PRIORITY_ID', Integer, ForeignKey('PRIORITIES.PRIORITY_ID'))
-    project = Column('PROJECT', String(100))
-    assigned_person = Column('ASSIGNED_PERSON', String(100), ForeignKey('USERS.FULL_NAME'))
-    service = Column('SERVICE', String(100))
-    description = Column('DESCRIPTION', Text)
-    notes = Column('NOTES', Text)
-    resolution = Column('RESOLUTION', Text)
-    category_tier_1 = Column('CATEGORY_TIER_1', String(100))
-    category_tier_2 = Column('CATEGORY_TIER_2', String(100))
-    category_tier_3 = Column('CATEGORY_TIER_3', String(100))
-    submit_datetime = Column('SUBMIT_DATETIME', DateTime)
-    resolved_datetime = Column('RESOLVED_DATETIME', DateTime)
-    closed_datetime = Column('CLOSED_DATETIME', DateTime)
-    last_modified_datetime = Column('LAST_MODIFIED_DATETIME', DateTime)
-    estimated_resolution_datetime = Column('ESTIMATED_RESOLUTION_DATETIME', DateTime)
-    resolution_category = Column('RESOLUTION_CATEGORY', String(100))
-    pending_duration = Column('PENDING_DURATION', Integer)
+    
+    Project = Column('PROJECT', String(100))
+    Assigned_Person = Column('ASSIGNED_PERSON', String(100), ForeignKey('USERS.FULL_NAME'))
+    Service = Column('SERVICE', String(100))
+    Description = Column('DESCRIPTION', Text)
+    Notes = Column('NOTES', Text)
+    Resolution = Column('RESOLUTION', Text)
+    
+    Cat_T1 = Column('CATEGORY_TIER_1', String(100))
+    Cat_T2 = Column('CATEGORY_TIER_2', String(100))
+    Cat_T3 = Column('CATEGORY_TIER_3', String(100))
+    
+    Submit_Datetime = Column('SUBMIT_DATETIME', DateTime)
+    Resolved_Datetime = Column('RESOLVED_DATETIME', DateTime)
+    Closed_Datetime = Column('CLOSED_DATETIME', DateTime)
+    Last_Modified = Column('LAST_MODIFIED_DATETIME', DateTime)
+    Estimated_Resolution = Column('ESTIMATED_RESOLUTION_DATETIME', DateTime)
+    
+    Resolution_Category = Column('RESOLUTION_CATEGORY', String(100))
+    Pending_Duration = Column('PENDING_DURATION', Integer)
 
     # Relații
     company = relationship('Company', back_populates='tickets')
@@ -109,7 +115,7 @@ class IncidentTicket(Base):
     assigned_user = relationship('User', back_populates='tickets')
 
     def __repr__(self):
-        return f"<IncidentTicket(number='{self.ticket_number}', status_id={self.status_id}, priority_id={self.priority_id})>"
+        return f"<IncidentTicket(number='{self.Ticket_Number}', status_id={self.status_id}, priority_id={self.priority_id})>"
 
 
 class SlaConfig(Base):
