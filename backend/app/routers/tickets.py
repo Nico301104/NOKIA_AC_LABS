@@ -10,7 +10,7 @@ from typing import Literal
 
 from ..database import get_db, engine
 # 🌟 Corectat: Importăm IncidentTicket în loc de Ticket
-from ..models import IncidentTicket, User
+from ..models import IncidentTicket, User, Priority, Status
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
 
@@ -124,37 +124,39 @@ def export_tickets(
     priority: str | None = Query(None),
     status: str | None = Query(None),
     assigned_person: str | None = Query(None),
-    sort_by: Literal["Submit_Datetime", "Priority", "Status"] = Query("Submit_Datetime"),
+    sort_by: Literal["submit_datetime", "priority", "status"] = Query("submit_datetime"),
     sort_order: Literal["asc", "desc"] = Query("desc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Export tickets as CSV or XLSX, using the same filters as the page."""
-
-    query = db.query(IncidentTicket)
+    query = db.query(IncidentTicket)\
+        .join(Priority, IncidentTicket.priority_id == Priority.priority_id)\
+        .join(Status, IncidentTicket.status_id == Status.status_id)
 
     # Apply filters
     if priority and priority != "All":
-        query = query.filter(IncidentTicket.Priority == priority)
+        query = query.filter(Priority.priority_name == priority)
 
     if status and status != "All":
-        query = query.filter(IncidentTicket.Status == status)
+        query = query.filter(Status.status_name == status)
 
     if assigned_person and assigned_person != "All":
         query = query.filter(IncidentTicket.Assigned_Person == assigned_person)
 
     # Apply sorting
-    if sort_by == "Priority":
+    if sort_by == "priority":
         priority_order = case(
-            (IncidentTicket.Priority == "Critical", 1),
-            (IncidentTicket.Priority == "High", 2),
-            (IncidentTicket.Priority == "Medium", 3),
-            (IncidentTicket.Priority == "Low", 4),
+            (Priority.priority_name == "Critical", 1),
+            (Priority.priority_name == "High", 2),
+            (Priority.priority_name == "Medium", 3),
+            (Priority.priority_name == "Low", 4),
             else_=5
         )
         column_to_sort = priority_order
+    elif sort_by == "status":
+        column_to_sort = Status.status_name
     else:
-        column_to_sort = getattr(IncidentTicket, sort_by)
+        column_to_sort = IncidentTicket.Submit_Datetime
 
     if sort_order == "asc":
         query = query.order_by(asc(column_to_sort))
