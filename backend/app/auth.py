@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .database import get_db
 from .models import User
@@ -12,7 +12,7 @@ from .config import settings
 # Authentication utilities for password hashing, token creation, and user retrieval
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # Use bcrypt for password hashing
-bearer_scheme = HTTPBearer()  # Authorization: Bearer <token>
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login") # Look in header for auth token
 
 # Verify the provided password against the stored hashed password
 def verify_password(plain_password, hashed_password):
@@ -31,11 +31,7 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 # Retrieve the current user based on the provided JWT token
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-):
-    token = credentials.credentials
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

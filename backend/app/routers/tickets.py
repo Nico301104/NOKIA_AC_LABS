@@ -68,21 +68,100 @@ def get_tickets(
 
 
 @router.get("/export")
-def export_tickets(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Export all tickets as CSV (authenticated).
+def export_tickets(
+    format: Literal["csv", "xlsx"] = Query("csv", description="Export format: csv or xlsx"),
+    priority: str | None = Query(None),
+    status: str | None = Query(None),
+    assigned_person: str | None = Query(None),
+    sort_by: Literal["Submit_Datetime", "Priority", "Status"] = Query("Submit_Datetime"),
+    sort_order: Literal["asc", "desc"] = Query("desc"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Export tickets as CSV or XLSX, using the same filters as the page."""
 
-    Returns a StreamingResponse with Content-Disposition header so browsers download `tickets.csv`.
-    """
-    # Build a SELECT for the tickets table and load into a DataFrame using the engine
-    # 🌟 Corectat: IncidentTicket în loc de Ticket
-    stmt = select(IncidentTicket.__table__)
-    df = pd.read_sql(stmt, con=engine)
+    query = db.query(IncidentTicket)
 
-    # Ensure CSV contains all columns and use default formatting
-    csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer, index=False)
-    csv_data = csv_buffer.getvalue()
-    csv_buffer.close()
+    # Apply filters
+    if priority and priority != "All":
+        query = query.filter(IncidentTicket.Priority == priority)
 
-    headers = {"Content-Disposition": "attachment; filename=tickets.csv"}
-    return StreamingResponse(iter([csv_data]), media_type="text/csv", headers=headers)
+    if status and status != "All":
+        query = query.filter(IncidentTicket.Status == status)
+
+    if assigned_person and assigned_person != "All":
+        query = query.filter(IncidentTicket.Assigned_Person == assigned_person)
+
+    # Apply sorting
+    if sort_by == "Priority":
+        priority_order = case(
+            (IncidentTicket.Priority == "Critical", 1),
+            (IncidentTicket.Priority == "High", 2),
+            (IncidentTicket.Priority == "Medium", 3),
+            (IncidentTicket.Priority == "Low", 4),
+            else_=5
+        )
+        column_to_sort = priority_order
+    else:
+        column_to_sort = getattr(IncidentTicket, sort_by)
+
+    if sort_order == "asc":
+        query = query.order_by(asc(column_to_sort))
+    else:
+        query = query.order_by(desc(column_to_sort))
+
+    df = pd.read_sql(query.statement, con=engine)
+
+    if format == "csv":
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
+
+        headers = {
+            "Content-Disposition": "attachment; filename=tickets.csv"
+        }
+
+        return StreamingResponse(
+            iter([csv_buffer.getvalue()]),
+            media_type="text/csv",
+            headers=headers
+        )
+
+    xlsx_buffer = io.BytesIO()
+
+    with pd.ExcelWriter(xlsx_buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Tickets")
+
+        worksheet = writer.sheets["Tickets"]
+
+        # Header row bold
+        for cell in worksheet[1]:
+            cell.font = cell.font.copy(bold=True)
+
+        # Freeze first row
+        worksheet.freeze_panes = "A2"
+
+        # Auto-adjust column widths
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+
+            for cell in column_cells:
+                if cell.value is not None:
+                    max_length = max(max_length, len(str(cell.value)))
+
+            worksheet.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+        worksheet.auto_filter.ref = worksheet.dimensions
+
+    xlsx_buffer.seek(0)
+
+    headers = {
+        "Content-Disposition": "attachment; filename=tickets.xlsx"
+    }
+
+    return StreamingResponse(
+        xlsx_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers
+    )

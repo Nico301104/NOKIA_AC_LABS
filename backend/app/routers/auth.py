@@ -16,7 +16,7 @@ router = APIRouter(
 # Login endpoint to authenticate users and return JWT tokens
 @router.post("/login", response_model=Token) 
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.full_name == user_credentials.FullName).first()
+    user = db.query(User).filter(User.FullName == user_credentials.FullName).first()
     if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -24,7 +24,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(data={"sub": User.full_name} # Create a JWT token with the username as the subject (sub) claim
+    access_token = create_access_token(data={"sub": user.FullName} # Create a JWT token with the username as the subject (sub) claim
     )
     return {
         "access_token": access_token, 
