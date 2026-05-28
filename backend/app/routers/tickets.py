@@ -80,11 +80,14 @@ def get_tickets(
     }
     
     result = db.execute(query, params)
-    db_rows = result.fetchall()
+    raw_cursor = result.cursor  # get before SQLAlchemy closes it
+
+    col_names = [col[0] for col in raw_cursor.description] if raw_cursor.description else []
+    db_rows = raw_cursor.fetchall()
     formatted_items = []
-    
+
     for row in db_rows:
-        r = dict(row._mapping)
+        r = dict(zip(col_names, row))
         formatted_items.append({
             "Ticket_Number": r.get("Ticket_ID"),
             "Description": r.get("Description"),
@@ -94,12 +97,10 @@ def get_tickets(
             "Team": r.get("Team"),
             "Submit_Datetime": r.get("Submit_Datetime")
         })
-   
-   
+
     total_items = 0
-    cursor = result.cursor
-    if cursor and cursor.nextset():
-        count_row = cursor.fetchone()
+    if raw_cursor.nextset():
+        count_row = raw_cursor.fetchone()
         if count_row:
             total_items = count_row[0]
 
