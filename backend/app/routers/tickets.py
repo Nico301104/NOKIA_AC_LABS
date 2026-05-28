@@ -6,6 +6,7 @@ from typing import Optional, Any
 import math
 import io
 import pandas as pd
+from typing import Literal
 
 from ..database import get_db, engine
 # 🌟 Corectat: Importăm IncidentTicket în loc de Ticket
