@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, select, case, text
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 import math
 import io
 import pandas as pd
