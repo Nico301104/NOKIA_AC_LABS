@@ -125,9 +125,12 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
 
 export default function Dashboard() {
   // Stats — fetch separat, neafectat de filtre
-  const [statsTotal, setStatsTotal]   = useState(0)
-  const [statsItems, setStatsItems]   = useState<Ticket[]>([])
-  const [statsLoading, setStatsLoading] = useState(true)
+  const [statsTotal, setStatsTotal]       = useState(0)
+  const [statsOpen, setStatsOpen]         = useState(0)
+  const [statsInLucru, setStatsInLucru]   = useState(0)
+  const [statsFinalizate, setStatsFinalizate] = useState(0)
+  const [statsCritical, setStatsCritical] = useState(0)
+  const [statsLoading, setStatsLoading]   = useState(true)
 
   // Tabel
   const [data, setData]           = useState<PageData | null>(null)
@@ -148,11 +151,49 @@ export default function Dashboard() {
 
   const [teams, setTeams] = useState<string[]>([])
 
-  // Fetch stats (o singură dată, fără filtre)
+  // Fetch stats (o singură dată, fără filtre) — counts exacte din tot DB-ul
   useEffect(() => {
-    api.get('/tickets/', { params: { page: 1, limit: 10 } })
-      .then(r => { setStatsTotal(r.data.total); setStatsItems(r.data.items) })
-      .finally(() => setStatsLoading(false))
+    const fetchStats = async () => {
+      setStatsLoading(true)
+      try {
+        const [totalRes, openRes, pendingRes, closedRes, resolvedRes] = await Promise.all([
+          api.get('/tickets/', { params: { page: 1, limit: 50 } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Open' } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Pending' } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Closed' } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Resolved' } }),
+        ])
+
+        const total    = totalRes.data.total as number
+        const open     = openRes.data.total as number
+        const pending  = pendingRes.data.total as number
+        const closed   = closedRes.data.total as number
+        const resolved = resolvedRes.data.total as number
+        const pages    = totalRes.data.pages as number
+
+        setStatsTotal(total)
+        setStatsOpen(open)
+        setStatsInLucru(pending)
+        setStatsFinalizate(closed + resolved)
+
+        // Numărăm tichetele Critical paginând prin tot DB-ul (limit=50 per pagină)
+        const allItems: Ticket[] = [...totalRes.data.items]
+        if (pages > 1) {
+          const remaining = await Promise.all(
+            Array.from({ length: pages - 1 }, (_, i) =>
+              api.get('/tickets/', { params: { page: i + 2, limit: 50 } })
+            )
+          )
+          remaining.forEach(r => allItems.push(...r.data.items))
+        }
+        setStatsCritical(allItems.filter(t => t.Priority === 'Critical').length)
+      } catch {
+        // stats fetch eșuat — valorile rămân 0
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+    fetchStats()
   }, [])
 
   // Fetch lista de echipe pentru select
@@ -230,17 +271,12 @@ export default function Dashboard() {
 
   const hasFilters = !!(search || statusFilter || teamFilter || startDate || endDate)
 
-  const open       = statsItems.filter(t => t.Status === 'Open').length
-  const inLucru    = statsItems.filter(t => t.Status === 'Pending' || t.Status === 'In Progress').length
-  const finalizate = statsItems.filter(t => t.Status === 'Closed' || t.Status === 'Resolved').length
-  const critical   = statsItems.filter(t => t.Priority === 'Critical').length
-
   const stats = [
-    { value: statsTotal, label: 'TOTAL TICHETE', color: 'var(--violet-500)', highlight: false },
-    { value: open,       label: 'DESCHISE',      color: 'var(--signal-500)', highlight: false },
-    { value: inLucru,   label: 'ÎN LUCRU',       color: '#d97706',           highlight: false },
-    { value: finalizate, label: 'FINALIZATE',    color: '#16a34a',           highlight: false },
-    { value: critical,  label: 'CRITICE',         color: '#dc2626',           highlight: true  },
+    { value: statsTotal,      label: 'TOTAL TICHETE', color: 'var(--violet-500)', highlight: false },
+    { value: statsOpen,       label: 'DESCHISE',       color: 'var(--signal-500)', highlight: false },
+    { value: statsInLucru,    label: 'ÎN LUCRU',       color: '#d97706',           highlight: false },
+    { value: statsFinalizate, label: 'FINALIZATE',     color: '#16a34a',           highlight: false },
+    { value: statsCritical,   label: 'CRITICE',         color: '#dc2626',           highlight: true  },
   ]
 
   return (
