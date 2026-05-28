@@ -54,10 +54,8 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* Butoane de navigatie: Dashboard si Tichete */}
       <div style={{ display: 'flex', gap: '0.25rem' }}>
         {navBtn('/dashboard', 'DASHBOARD')}
-        {navBtn('/tickets', 'TICHETE')}
       </div>
 
       <div className="db-nav-right">
