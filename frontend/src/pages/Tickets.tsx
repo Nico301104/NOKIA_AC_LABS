@@ -94,7 +94,7 @@ export default function Tickets() {
   const [data, setData]         = useState<PageData | null>(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
-  const [exporting, setExporting] = useState(false)
+  const [exporting, setExporting] = useState<'csv' | 'xlsx' | null>(null)
 
   const [page, setPage]         = useState(1)
   const [limit, setLimit]       = useState<Limit>(10)
@@ -118,19 +118,19 @@ export default function Tickets() {
     setPage(1)
   }
 
-  const handleExport = async () => {
-    setExporting(true)
+  const handleExport = async (format: 'csv' | 'xlsx') => {
+    setExporting(format)
     try {
-      const r = await api.get('/tickets/export', { responseType: 'blob' })
+      const r = await api.get('/tickets/export', { params: { format }, responseType: 'blob' })
       const url = URL.createObjectURL(new Blob([r.data]))
       const a = document.createElement('a')
-      a.href = url; a.download = 'tickets.csv'
+      a.href = url; a.download = `tickets.${format}`
       document.body.appendChild(a); a.click()
       document.body.removeChild(a); URL.revokeObjectURL(url)
     } catch {
       setError('Export eșuat.')
     } finally {
-      setExporting(false)
+      setExporting(null)
     }
   }
 
@@ -163,8 +163,8 @@ export default function Tickets() {
               {sortOrder === 'asc' ? '↑' : '↓'}
             </button>
             <button
-              onClick={handleExport}
-              disabled={exporting}
+              onClick={() => handleExport('csv')}
+              disabled={exporting !== null}
               style={{
                 padding: '0.4rem 0.9rem',
                 fontFamily: 'var(--font-mono)',
@@ -174,12 +174,31 @@ export default function Tickets() {
                 background: 'linear-gradient(180deg, var(--violet-400), var(--violet-700))',
                 borderRadius: '6px',
                 border: 'none',
-                cursor: exporting ? 'not-allowed' : 'pointer',
-                opacity: exporting ? 0.6 : 1,
+                cursor: exporting !== null ? 'not-allowed' : 'pointer',
+                opacity: exporting !== null ? 0.6 : 1,
                 boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
               }}
             >
-              {exporting ? 'EXPORT...' : 'EXPORT CSV'}
+              {exporting === 'csv' ? 'EXPORT...' : 'EXPORT CSV'}
+            </button>
+            <button
+              onClick={() => handleExport('xlsx')}
+              disabled={exporting !== null}
+              style={{
+                padding: '0.4rem 0.9rem',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.15em',
+                color: '#ffffff',
+                background: 'linear-gradient(180deg, #16a34a, #15803d)',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: exporting !== null ? 'not-allowed' : 'pointer',
+                opacity: exporting !== null ? 0.6 : 1,
+                boxShadow: '0 4px 12px rgba(22,163,74,0.35)',
+              }}
+            >
+              {exporting === 'xlsx' ? 'EXPORT...' : 'EXPORT XLSX'}
             </button>
           </div>
         </div>
@@ -196,7 +215,7 @@ export default function Tickets() {
           <div className="db-table-topbar">
             <span className="db-section-label">LISTA TICHETE</span>
             <span className="db-section-count">
-              {data ? `${data.total} total · pagina ${data.page} din ${data.pages}` : '—'}
+              {data ? `pagina ${data.page}` : '—'}
             </span>
           </div>
           <div className="db-table-wrap">
@@ -247,17 +266,20 @@ export default function Tickets() {
         </div>
 
         {/* Pagination */}
-        {data && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexShrink: 0, paddingBottom: '0.25rem' }}>
-            <PagBtn onClick={() => setPage(1)}             disabled={page === 1}>«</PagBtn>
-            <PagBtn onClick={() => setPage(p => p - 1)}   disabled={page === 1}>‹</PagBtn>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
-              {page} / {data.pages}
-            </span>
-            <PagBtn onClick={() => setPage(p => p + 1)}   disabled={page === data.pages}>›</PagBtn>
-            <PagBtn onClick={() => setPage(data.pages)}   disabled={page === data.pages}>»</PagBtn>
-          </div>
-        )}
+        {data && (() => {
+          const hasMore = data.items.length >= limit
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexShrink: 0, paddingBottom: '0.25rem' }}>
+              <PagBtn onClick={() => setPage(1)}           disabled={page === 1}>«</PagBtn>
+              <PagBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</PagBtn>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
+                pagina {page}
+              </span>
+              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>›</PagBtn>
+              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>»</PagBtn>
+            </div>
+          )
+        })()}
 
       </div>
     </div>
