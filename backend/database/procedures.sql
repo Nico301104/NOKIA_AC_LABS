@@ -42,6 +42,7 @@ BEGIN
         LEFT JOIN COMPANIES c ON t.COMPANY_ID = c.COMPANY_ID
         LEFT JOIN TEAMS tm ON t.TEAM_ID = tm.TEAM_ID
         WHERE (@status IS NULL OR s.STATUS_NAME = @status)
+        AND (@team IS NULL OR tm.TEAM_NAME = @team)
         AND (@StartDateParsed IS NULL OR t.SUBMIT_DATETIME >= @StartDateParsed)
         AND (@EndDateParsed IS NULL OR t.SUBMIT_DATETIME <= @EndDateParsed)
         AND (@search IS NULL

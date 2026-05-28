@@ -1,12 +1,16 @@
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, AliasChoices
 from datetime import datetime
 from typing import List, Optional
 
 # Pydantic models for request and response validation
 
-class UserLogin(BaseModel): #Model for user login request
-    FullName: str 
-    Password: str
+class UserLogin(BaseModel):
+    FullName: str = Field(validation_alias=AliasChoices("FullName", "fullName", "username"))
+    Password: str = Field(validation_alias=AliasChoices("Password", "password"))
+
+    model_config = {
+        "populate_by_name": True
+    }
 
 class Token(BaseModel): #Model for token response
     access_token: str
