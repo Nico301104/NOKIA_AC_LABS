@@ -16,6 +16,7 @@ interface Ticket {
   Submit_Datetime: string | null
 }
 
+// Returneaza culoarea de fundal si textul pentru badge-ul de status.
 function statusStyle(status: string | null) {
   const map: Record<string, { bg: string; color: string }> = {
     Open:     { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
@@ -26,11 +27,13 @@ function statusStyle(status: string | null) {
   return (status ? map[status] : undefined) ?? { bg: 'rgba(37,99,235,0.1)', color: 'var(--violet-700)' }
 }
 
+// Returneaza culoarea punctului colorat din coloana de prioritate.
 function priorityColor(priority: string | null) {
   const map: Record<string, string> = { Critical: '#dc2626', High: '#ea580c', Medium: '#d97706', Low: '#16a34a' }
   return (priority ? map[priority] : undefined) ?? 'var(--text-muted)'
 }
 
+// Formateaza un timestamp ISO in format romanesc (ZZ.LL.AAAA).
 function formatDate(dt: string | null | undefined) {
   if (!dt) return '—'
   try { return new Date(dt).toLocaleDateString('ro-RO') } catch { return dt }
@@ -38,20 +41,24 @@ function formatDate(dt: string | null | undefined) {
 
 export default function Dashboard() {
   const [tickets, setTickets] = useState<Ticket[]>([])
-  const [total, setTotal] = useState(0)
+  const [total, setTotal]     = useState(0)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
+    // La montare, incarca primele 10 tichete (cele mai recente) pentru preview.
+    // Totalul returnat de backend este numarul real de tichete din DB (ex: 500).
     api.get('/tickets/', { params: { page: 1, limit: 10 } })
       .then(r => { setTickets(r.data.items); setTotal(r.data.total) })
       .finally(() => setLoading(false))
   }, [])
 
-  const open      = tickets.filter(t => t.Status === 'Open').length
-  const inLucru   = tickets.filter(t => t.Status === 'Pending' || t.Status === 'In Progress').length
+  // Statisticile sunt calculate local din cele 10 tichete incarcate,
+  // cu exceptia totalului care vine direct din backend (COUNT din DB).
+  const open       = tickets.filter(t => t.Status === 'Open').length
+  const inLucru    = tickets.filter(t => t.Status === 'Pending' || t.Status === 'In Progress').length
   const finalizate = tickets.filter(t => t.Status === 'Closed' || t.Status === 'Resolved').length
-  const critical  = tickets.filter(t => t.Priority === 'Critical').length
+  const critical   = tickets.filter(t => t.Priority === 'Critical').length
 
   const stats = [
     { value: total,      label: 'TOTAL TICHETE', color: 'var(--violet-500)', highlight: false },
@@ -66,6 +73,7 @@ export default function Dashboard() {
       <NavBar />
       <div className="db-content">
 
+        {/* Carduri cu statistici sumare */}
         <div className="db-stats">
           {stats.map(s => (
             <div key={s.label} className={`db-stat-card${s.highlight ? ' db-stat-card--critical' : ''}`}>
@@ -76,11 +84,13 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Tabel cu cele mai recente 10 tichete */}
         <div className="db-table-section">
           <div className="db-table-topbar">
             <span className="db-section-label">TICHETE RECENTE</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               {!loading && <span className="db-section-count">{tickets.length} rezultate</span>}
+              {/* Buton pentru navigare la pagina completa de tichete */}
               <button
                 onClick={() => navigate('/tickets')}
                 style={{
@@ -120,6 +130,7 @@ export default function Dashboard() {
                       const ss = statusStyle(t.Status)
                       const pc = priorityColor(t.Priority)
                       return (
+                        // Randul cu prioritate Critical primeste o clasa speciala pentru highlight vizual.
                         <tr key={t.Ticket_Number} className={t.Priority === 'Critical' ? 'db-row--critical' : ''}>
                           <td><span className="db-ticket-id">{t.Ticket_Number}</span></td>
                           <td><span className="db-badge" style={{ background: ss.bg, color: ss.color }}>{t.Status}</span></td>
