@@ -35,6 +35,8 @@ BEGIN
             p.PRIORITY_NAME as Priority,
             c.COMPANY_NAME as Company,
             tm.TEAM_NAME as Team,
+            t.PRIORITY_ID as Priority_ID,
+            t.STATUS_ID as Status_ID,
             t.SUBMIT_DATETIME as Submit_Datetime
         FROM INCIDENT_TICKETS t
         LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
@@ -60,8 +62,8 @@ BEGIN
         CASE WHEN @sort_order = 'ASC' THEN 
             CASE @sort_by
                 WHEN 'TICKET_NUMBER' THEN Ticket_ID
-                WHEN 'STATUS' THEN Status
-                WHEN 'PRIORITY' THEN Priority
+                WHEN 'STATUS' THEN Status_ID
+                WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
                 ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
@@ -71,8 +73,8 @@ BEGIN
         CASE WHEN @sort_order = 'DESC' THEN 
             CASE @sort_by
                 WHEN 'TICKET_NUMBER' THEN Ticket_ID
-                WHEN 'STATUS' THEN Status
-                WHEN 'PRIORITY' THEN Priority
+                WHEN 'STATUS' THEN Status_ID
+                WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
 				ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
