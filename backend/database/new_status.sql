@@ -1,3 +1,6 @@
+USE ticketing;
+GO
+
 INSERT INTO STATUSES (STATUS_NAME)
-VALUES ('Assigned');
+VALUES ('On Hold');
 GO
