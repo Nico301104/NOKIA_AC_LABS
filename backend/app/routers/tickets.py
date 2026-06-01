@@ -8,7 +8,7 @@ import io
 import pandas as pd
 
 from ..database import get_db, engine
-from ..models import Ticket, User
+from ..models import IncidentTicket, User
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
 
