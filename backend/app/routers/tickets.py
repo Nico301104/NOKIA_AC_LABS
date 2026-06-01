@@ -9,8 +9,12 @@ import pandas as pd
 from typing import Literal
 
 from ..database import get_db, engine
+<<<<<<< HEAD
 # 🌟 Corectat: Importăm IncidentTicket în loc de Ticket
 from ..models import IncidentTicket, User, Priority, Status
+=======
+from ..models import IncidentTicket, User
+>>>>>>> Mihai
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
 
