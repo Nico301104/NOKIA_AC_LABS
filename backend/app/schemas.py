@@ -63,3 +63,25 @@ class PaginatedTickets(BaseModel): #Model for paginated ticket response
     total: int
     page: int
     pages: int 
+
+class ChangeTicketStatusRequest(BaseModel):
+    NewStatusId: int = Field(validation_alias=AliasChoices("NewStatusId", "newStatusId", "new_status_id"))
+
+    model_config = {
+        "populate_by_name": True
+    }
+
+class SelfAssignTicketRequest(BaseModel):
+    UserFullName: str = Field(validation_alias=AliasChoices("UserFullName", "userFullName", "user_full_name"))
+
+    model_config = {
+        "populate_by_name": True
+    }
+
+class AdminAssignTicketRequest(BaseModel):
+    AdminFullName: str = Field(validation_alias=AliasChoices("AdminFullName", "adminFullName", "admin_full_name"))
+    TargetUserFullName: str = Field(validation_alias=AliasChoices("TargetUserFullName", "targetUserFullName", "target_user_full_name"))
+
+    model_config = {
+        "populate_by_name": True
+    }
