@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .routers import auth, tickets
+from .routers import auth, tickets, users
 from .database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(tickets.router)
+app.include_router(users.router)
 
 # Endpoint Test 
 @app.get("/", tags=["Health Check"])
