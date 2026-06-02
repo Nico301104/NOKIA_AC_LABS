@@ -10,7 +10,7 @@ from typing import Literal
 from ..database import get_db, engine
 from ..models import IncidentTicket, User, Priority, Status
 
-from ..schemas import PaginatedTickets
+from ..schemas import PaginatedTickets, ChangeTicketStatusRequest, SelfAssignTicketRequest, AdminAssignTicketRequest
 from ..auth import get_current_user
 
 # Router for handling ticket-related endpoints
@@ -217,3 +217,105 @@ def export_tickets(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers=headers
     )
+
+
+
+@router.patch("/{ticket_number}/status")
+def change_ticket_status(
+    ticket_number: str,
+    payload: ChangeTicketStatusRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        db.execute(
+            text("""
+                EXEC dbo.sp_ChangeTicketStatus
+                    @TicketNumber = :ticket_number,
+                    @NewStatusId = :new_status_id
+            """),
+            {
+                "ticket_number": ticket_number,
+                "new_status_id": payload.NewStatusId,
+            },
+        )
+        db.commit()
+
+        return {
+            "message": "Ticket status updated successfully",
+            "ticket_number": ticket_number,
+            "new_status_id": payload.NewStatusId,
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.post("/{ticket_number}/self-assign")
+def self_assign_ticket(
+    ticket_number: str,
+    payload: SelfAssignTicketRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        db.execute(
+            text("""
+                EXEC dbo.sp_SelfAssignTicket
+                    @TicketNumber = :ticket_number,
+                    @UserFullName = :user_full_name
+            """),
+            {
+                "ticket_number": ticket_number,
+                "user_full_name": payload.UserFullName,
+            },
+        )
+        db.commit()
+
+        return {
+            "message": "Ticket self-assigned successfully",
+            "ticket_number": ticket_number,
+            "assigned_person": payload.UserFullName,
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.post("/{ticket_number}/admin-assign")
+def admin_assign_ticket(
+    ticket_number: str,
+    payload: AdminAssignTicketRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        db.execute(
+            text("""
+                EXEC dbo.sp_AdminAssignTicket
+                    @TicketNumber = :ticket_number,
+                    @AdminFullName = :admin_full_name,
+                    @TargetUserFullName = :target_user_full_name
+            """),
+            {
+                "ticket_number": ticket_number,
+                "admin_full_name": payload.AdminFullName,
+                "target_user_full_name": payload.TargetUserFullName,
+            },
+        )
+        db.commit()
+
+        return {
+            "message": "Ticket assigned by admin successfully",
+            "ticket_number": ticket_number,
+            "admin": payload.AdminFullName,
+            "assigned_person": payload.TargetUserFullName,
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
