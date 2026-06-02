@@ -2,9 +2,15 @@ USE ticketing;
 GO
 
 CREATE OR ALTER PROCEDURE dbo.GetPaginatedTickets
-    @status VARCHAR(50) = NULL,
-    @priority VARCHAR(50) = NULL,
-    @team VARCHAR(100) = NULL
+    @search VARCHAR(100) = NULL,
+    @status VARCHAR(20) = NULL,
+    @team VARCHAR(100) = NULL,
+    @start_date VARCHAR(20) = NULL,
+    @end_date VARCHAR(20) = NULL,
+    @sort_by VARCHAR(50) = 'SUBMIT_DATETIME',
+    @sort_order VARCHAR(4) = 'DESC',
+    @skip INT = 0,
+    @limit INT = 10
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -29,6 +35,8 @@ BEGIN
             p.PRIORITY_NAME as Priority,
             c.COMPANY_NAME as Company,
             tm.TEAM_NAME as Team,
+			t.PRIORITY_ID as Priority_ID,
+			t.STATUS_ID as Status_ID,
             t.SUBMIT_DATETIME as Submit_Datetime
         FROM INCIDENT_TICKETS t
         LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
@@ -54,22 +62,22 @@ BEGIN
         CASE WHEN @sort_order = 'ASC' THEN 
             CASE @sort_by
                 WHEN 'TICKET_NUMBER' THEN Ticket_ID
-                WHEN 'STATUS' THEN Status
-                WHEN 'PRIORITY' THEN Priority
+                WHEN 'STATUS' THEN Status_ID
+                WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
-                ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
+               -- ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
             END
         END ASC,
 
         CASE WHEN @sort_order = 'DESC' THEN 
             CASE @sort_by
                 WHEN 'TICKET_NUMBER' THEN Ticket_ID
-                WHEN 'STATUS' THEN Status
-                WHEN 'PRIORITY' THEN Priority
+                WHEN 'STATUS' THEN Status_ID
+                WHEN 'PRIORITY' THEN Priority_ID
                 WHEN 'COMPANY' THEN Company
                 WHEN 'TEAM' THEN Team
-				ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
+				--ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
 			END
         END DESC
 
@@ -80,11 +88,18 @@ BEGIN
     SELECT COUNT(*) AS total_items FROM INCIDENT_TICKETS t
     LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
     LEFT JOIN PRIORITIES p ON t.PRIORITY_ID = p.PRIORITY_ID
+    LEFT JOIN COMPANIES c ON t.COMPANY_ID = c.COMPANY_ID
     LEFT JOIN TEAMS tm ON t.TEAM_ID = tm.TEAM_ID
     WHERE (@status IS NULL OR s.STATUS_NAME = @status)
-        AND (@priority IS NULL OR p.PRIORITY_NAME = @priority)
         AND (@team IS NULL OR tm.TEAM_NAME = @team)
-    GROUP BY ISNULL(t.CATEGORY_TIER_3, 'Necunoscut')
-    ORDER BY ticket_count DESC;
+        AND (@StartDateParsed IS NULL OR t.SUBMIT_DATETIME >= @StartDateParsed)
+        AND (@EndDateParsed IS NULL OR t.SUBMIT_DATETIME <= @EndDateParsed)
+        AND (@search IS NULL
+            OR t.TICKET_NUMBER LIKE '%' + @search + '%'
+            OR s.STATUS_NAME LIKE '%' + @search + '%'
+            OR p.PRIORITY_NAME LIKE '%' + @search + '%'
+            OR c.COMPANY_NAME LIKE '%' + @search + '%'
+            OR tm.TEAM_NAME LIKE '%' + @search + '%'
+        );
 END;
 GO

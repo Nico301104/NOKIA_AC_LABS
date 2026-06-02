@@ -9,7 +9,6 @@ import pandas as pd
 from typing import Literal
 
 from ..database import get_db, engine
-# 🌟 Corectat: Importăm IncidentTicket în loc de Ticket
 from ..models import IncidentTicket, User
 from ..schemas import PaginatedTickets
 from ..auth import get_current_user
@@ -43,7 +42,7 @@ def exec_tickets_procedure(db: Session, params: dict[str, Any]):
 def get_tickets(
     page: int = 1,
     limit: int = Query(10, enum = [10, 25, 50]),
-    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
+    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY"]),
     sort_order: str = Query("DESC", enum = ["ASC", "DESC"]),
     search: Optional[str] = None,
     status: Optional[str] = None,
@@ -53,19 +52,6 @@ def get_tickets(
     db: Session = Depends(get_db),
 ):
     skip = (page - 1) * limit
-    
-    query = text("""
-        EXEC dbo.GetPaginatedTickets
-            @search = :search,
-            @status = :status,
-            @team = :team,
-            @start_date = :start_date,
-            @end_date = :end_date,
-            @sort_by = :sort_by,
-            @sort_order = :sort_order,
-            @skip = :skip,
-            @limit = :limit
-    """)
     
     params = {
         "search": search,
@@ -79,7 +65,7 @@ def get_tickets(
         "limit": limit
     }
     
-    result = db.execute(query, params)
+    result = exec_tickets_procedure(db, params)
     raw_cursor = result.cursor  # get before SQLAlchemy closes it
 
     col_names = [col[0] for col in raw_cursor.description] if raw_cursor.description else []
