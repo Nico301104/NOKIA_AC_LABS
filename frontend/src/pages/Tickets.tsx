@@ -3,8 +3,8 @@ import NavBar from '../components/NavBar'
 import api from '../services/api'
 import './Dashboard.css'
 
-type SortField = 'Submit_Datetime' | 'Priority' | 'Status'
-type SortOrder = 'asc' | 'desc'
+type SortField = 'SUBMIT_DATETIME' | 'STATUS' | 'PRIORITY' | 'COMPANY' | 'TEAM'
+type SortOrder = 'ASC' | 'DESC'
 type Limit = 10 | 25 | 50
 
 interface Ticket {
@@ -16,6 +16,7 @@ interface Ticket {
   Team: string | null
   Assigned_Person: string | null
   Service: string | null
+  Description: string | null
   Submit_Datetime: string | null
 }
 
@@ -59,6 +60,38 @@ const ctrlStyle: React.CSSProperties = {
   outline: 'none',
 }
 
+const filterInputStyle: React.CSSProperties = {
+  padding: '0.45rem 0.75rem',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.7rem',
+  letterSpacing: '0.04em',
+  color: 'var(--text-primary)',
+  background: 'var(--bg-elevated)',
+  border: '1px solid rgba(37,99,235,0.15)',
+  borderRadius: '7px',
+  outline: 'none',
+  width: '100%',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+}
+
+const filterLabelStyle: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '0.52rem',
+  letterSpacing: '0.22em',
+  color: 'var(--text-muted)',
+  marginBottom: '0.3rem',
+  display: 'block',
+}
+
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <span style={filterLabelStyle}>{label}</span>
+      {children}
+    </div>
+  )
+}
+
 function SortableTh({ label, field, current, order, onClick }: {
   label: string; field: SortField; current: SortField; order: SortOrder
   onClick: (f: SortField) => void
@@ -69,7 +102,7 @@ function SortableTh({ label, field, current, order, onClick }: {
       style={{ cursor: 'pointer', userSelect: 'none', color: active ? 'var(--violet-500)' : undefined }}
       onClick={() => onClick(field)}
     >
-      {label}{active ? (order === 'asc' ? ' ↑' : ' ↓') : ''}
+      {label}{active ? (order === 'ASC' ? ' ↑' : ' ↓') : ''}
     </th>
   )
 }
@@ -91,37 +124,82 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
 }
 
 export default function Tickets() {
-  const [data, setData]         = useState<PageData | null>(null)
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
+  const [data, setData]           = useState<PageData | null>(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState('')
   const [exporting, setExporting] = useState<'csv' | 'xlsx' | null>(null)
 
-  const [page, setPage]         = useState(1)
-  const [limit, setLimit]       = useState<Limit>(10)
-  const [sortBy, setSortBy]     = useState<SortField>('Submit_Datetime')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  const [page, setPage]           = useState(1)
+  const [limit, setLimit]         = useState<Limit>(10)
+  const [sortBy, setSortBy]       = useState<SortField>('SUBMIT_DATETIME')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('DESC')
+
+  const [search, setSearch]             = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [teamFilter, setTeamFilter]     = useState('')
+  const [startDate, setStartDate]       = useState('')
+  const [endDate, setEndDate]           = useState('')
+
+  const [teams, setTeams] = useState<string[]>([])
+
+  // Încarcă lista de echipe disponibile din primele 50 de tichete
+  useEffect(() => {
+    api.get('/tickets/', { params: { page: 1, limit: 50, sort_by: 'TEAM', sort_order: 'ASC' } })
+      .then(r => {
+        const unique = [...new Set(
+          (r.data.items as Ticket[])
+            .map(t => t.Team)
+            .filter((t): t is string => !!t)
+        )].sort()
+        setTeams(unique)
+      })
+      .catch(() => {})
+  }, [])
 
   const fetchTickets = useCallback(() => {
     setLoading(true)
     setError('')
-    api.get('/tickets/', { params: { page, limit, sort_by: sortBy, sort_order: sortOrder } })
+    api.get('/tickets/', {
+      params: {
+        page,
+        limit,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        ...(search       && { search }),
+        ...(statusFilter && { status: statusFilter }),
+        ...(teamFilter   && { team: teamFilter }),
+        ...(startDate    && { start_date: startDate }),
+        ...(endDate      && { end_date: endDate }),
+      }
+    })
       .then(r => setData(r.data))
       .catch(() => setError('Nu s-au putut încărca tichetele.'))
       .finally(() => setLoading(false))
-  }, [page, limit, sortBy, sortOrder])
+  }, [page, limit, sortBy, sortOrder, search, statusFilter, teamFilter, startDate, endDate])
 
   useEffect(() => { fetchTickets() }, [fetchTickets])
 
   const handleSortBy = (field: SortField) => {
-    if (field === sortBy) { setSortOrder(o => o === 'asc' ? 'desc' : 'asc') }
-    else { setSortBy(field); setSortOrder('desc') }
+    if (field === sortBy) { setSortOrder(o => o === 'ASC' ? 'DESC' : 'ASC') }
+    else { setSortBy(field); setSortOrder('DESC') }
     setPage(1)
   }
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
     setExporting(format)
     try {
-      const r = await api.get('/tickets/export', { params: { format }, responseType: 'blob' })
+      const exportSortBy = (['SUBMIT_DATETIME', 'PRIORITY', 'STATUS'] as SortField[]).includes(sortBy)
+        ? sortBy.toLowerCase()
+        : 'submit_datetime'
+      const r = await api.get('/tickets/export', {
+        params: {
+          format,
+          sort_by: exportSortBy,
+          sort_order: sortOrder.toLowerCase(),
+          ...(statusFilter && { status: statusFilter }),
+        },
+        responseType: 'blob',
+      })
       const url = URL.createObjectURL(new Blob([r.data]))
       const a = document.createElement('a')
       a.href = url; a.download = `tickets.${format}`
@@ -133,6 +211,13 @@ export default function Tickets() {
       setExporting(null)
     }
   }
+
+  const clearFilters = () => {
+    setSearch(''); setStatusFilter(''); setTeamFilter('')
+    setStartDate(''); setEndDate(''); setPage(1)
+  }
+
+  const hasFilters = !!(search || statusFilter || teamFilter || startDate || endDate)
 
   return (
     <div className="dashboard">
@@ -151,16 +236,18 @@ export default function Tickets() {
               <option value={50}>50 / pagină</option>
             </select>
             <select value={sortBy} onChange={e => { setSortBy(e.target.value as SortField); setPage(1) }} style={ctrlStyle}>
-              <option value="Submit_Datetime">Sortare: Data</option>
-              <option value="Priority">Sortare: Prioritate</option>
-              <option value="Status">Sortare: Status</option>
+              <option value="SUBMIT_DATETIME">Sortare: Data</option>
+              <option value="PRIORITY">Sortare: Prioritate</option>
+              <option value="STATUS">Sortare: Status</option>
+              <option value="COMPANY">Sortare: Companie</option>
+              <option value="TEAM">Sortare: Echipă</option>
             </select>
             <button
-              onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
-              title={sortOrder === 'asc' ? 'Crescător' : 'Descrescător'}
+              onClick={() => setSortOrder(o => o === 'ASC' ? 'DESC' : 'ASC')}
+              title={sortOrder === 'ASC' ? 'Crescător' : 'Descrescător'}
               style={{ ...ctrlStyle, minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              {sortOrder === 'asc' ? '↑' : '↓'}
+              {sortOrder === 'ASC' ? '↑' : '↓'}
             </button>
             <button
               onClick={() => handleExport('csv')}
@@ -203,19 +290,111 @@ export default function Tickets() {
           </div>
         </div>
 
-        {/* Error */}
+        {/* Bara de filtrare */}
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem',
+          alignItems: 'flex-end',
+          flexShrink: 0,
+          flexWrap: 'wrap',
+          padding: '0.85rem 1rem',
+          background: 'var(--bg-panel)',
+          border: '1px solid rgba(37,99,235,0.1)',
+          borderRadius: '10px',
+          boxShadow: '0 2px 10px rgba(37,99,235,0.05)',
+        }}>
+
+          <FilterGroup label="CĂUTARE">
+            <input
+              type="text"
+              placeholder="Nr. tichet, descriere..."
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1) }}
+              style={{ ...filterInputStyle, width: 180 }}
+            />
+          </FilterGroup>
+
+          <FilterGroup label="STATUS">
+            <select
+              value={statusFilter}
+              onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
+              style={{ ...filterInputStyle, width: 140 }}
+            >
+              <option value="">Toate</option>
+              <option value="Open">Open</option>
+              <option value="Closed">Closed</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </FilterGroup>
+
+          <FilterGroup label="ECHIPĂ">
+            <select
+              value={teamFilter}
+              onChange={e => { setTeamFilter(e.target.value); setPage(1) }}
+              style={{ ...filterInputStyle, width: 160 }}
+            >
+              <option value="">Toate</option>
+              {teams.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </FilterGroup>
+
+          <FilterGroup label="DATĂ START">
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => { setStartDate(e.target.value); setPage(1) }}
+              style={{ ...filterInputStyle, width: 140 }}
+            />
+          </FilterGroup>
+
+          <FilterGroup label="DATĂ FINAL">
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => { setEndDate(e.target.value); setPage(1) }}
+              style={{ ...filterInputStyle, width: 140 }}
+            />
+          </FilterGroup>
+
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              style={{
+                alignSelf: 'flex-end',
+                padding: '0.45rem 0.85rem',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.12em',
+                color: '#dc2626',
+                background: 'rgba(220,38,38,0.06)',
+                border: '1px solid rgba(220,38,38,0.25)',
+                borderRadius: '7px',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'background 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ✕ RESET FILTRE
+            </button>
+          )}
+        </div>
+
         {error && (
           <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)', color: '#dc2626', padding: '0.7rem 1rem', borderRadius: '10px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', flexShrink: 0 }}>
             {error}
           </div>
         )}
 
-        {/* Table */}
+        {/* Tabelul principal */}
         <div className="db-table-section">
           <div className="db-table-topbar">
             <span className="db-section-label">LISTA TICHETE</span>
             <span className="db-section-count">
-              {data ? `pagina ${data.page}` : '—'}
+              {data ? `${data.total} total · pagina ${data.page} din ${data.pages}` : '—'}
             </span>
           </div>
           <div className="db-table-wrap">
@@ -229,10 +408,15 @@ export default function Tickets() {
                   <thead>
                     <tr>
                       <th>TICKET #</th>
-                      <SortableTh label="STATUS"    field="Status"          current={sortBy} order={sortOrder} onClick={handleSortBy} />
-                      <SortableTh label="PRIORITATE" field="Priority"       current={sortBy} order={sortOrder} onClick={handleSortBy} />
-                      <th>COMPANIE</th><th>PROIECT</th><th>ECHIPĂ</th><th>PERSOANĂ</th><th>SERVICIU</th>
-                      <SortableTh label="DATA"      field="Submit_Datetime" current={sortBy} order={sortOrder} onClick={handleSortBy} />
+                      <SortableTh label="STATUS"     field="STATUS"          current={sortBy} order={sortOrder} onClick={handleSortBy} />
+                      <SortableTh label="PRIORITATE" field="PRIORITY"        current={sortBy} order={sortOrder} onClick={handleSortBy} />
+                      <SortableTh label="COMPANIE"   field="COMPANY"         current={sortBy} order={sortOrder} onClick={handleSortBy} />
+                      <th>PROIECT</th>
+                      <SortableTh label="ECHIPĂ"     field="TEAM"            current={sortBy} order={sortOrder} onClick={handleSortBy} />
+                      <th>PERSOANĂ</th>
+                      <th>SERVICIU</th>
+                      <th>DESCRIERE</th>
+                      <SortableTh label="DATA"       field="SUBMIT_DATETIME" current={sortBy} order={sortOrder} onClick={handleSortBy} />
                     </tr>
                   </thead>
                   <tbody>
@@ -254,6 +438,15 @@ export default function Tickets() {
                           <td className="db-td-body">{t.Team ?? '—'}</td>
                           <td className="db-td-body">{t.Assigned_Person ?? '—'}</td>
                           <td><span className="db-service">{t.Service ?? '—'}</span></td>
+                          <td
+                            className="db-td-body"
+                            style={{ maxWidth: 200 }}
+                            title={t.Description ?? ''}
+                          >
+                            {t.Description
+                              ? (t.Description.length > 40 ? t.Description.slice(0, 40) + '…' : t.Description)
+                              : '—'}
+                          </td>
                           <td className="db-td-body">{formatDate(t.Submit_Datetime)}</td>
                         </tr>
                       )
@@ -265,18 +458,18 @@ export default function Tickets() {
           </div>
         </div>
 
-        {/* Pagination */}
+        {/* Paginare */}
         {data && (() => {
-          const hasMore = data.items.length >= limit
+          const totalPages = data.pages
           return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexShrink: 0, paddingBottom: '0.25rem' }}>
-              <PagBtn onClick={() => setPage(1)}           disabled={page === 1}>«</PagBtn>
+              <PagBtn onClick={() => setPage(1)}          disabled={page === 1}>«</PagBtn>
               <PagBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</PagBtn>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
-                pagina {page}
+                pagina {page} din {totalPages}
               </span>
-              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>›</PagBtn>
-              <PagBtn onClick={() => setPage(p => p + 1)} disabled={!hasMore}>»</PagBtn>
+              <PagBtn onClick={() => setPage(p => p + 1)} disabled={page >= totalPages}>›</PagBtn>
+              <PagBtn onClick={() => setPage(totalPages)}  disabled={page >= totalPages}>»</PagBtn>
             </div>
           )
         })()}

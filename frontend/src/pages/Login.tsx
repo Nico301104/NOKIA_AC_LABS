@@ -16,6 +16,8 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
+      // Apeleaza login() din AuthContext care face POST /auth/login si GET /auth/me.
+      // Daca reuseste, redirecteaza la dashboard.
       await login(username, password)
       navigate('/dashboard')
     } catch (err) {
@@ -88,6 +90,7 @@ export default function Login() {
                 </div>
               </div>
 
+              {/* Afiseaza mesajul de eroare returnat de backend (ex: credentiale gresite) */}
               {error && <div className="error-msg">{error}</div>}
 
               <button type="submit" className="btn-primary" disabled={loading}>

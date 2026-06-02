@@ -2,16 +2,20 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import '../pages/Dashboard.css'
 
+// Bara de navigatie afisata pe toate paginile protejate.
+// Arata numele si echipa userului autentificat, butoanele de navigatie si logout.
 export default function NavBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
   const handleLogout = () => {
+    // Sterge sesiunea din context si localStorage, apoi trimite la login.
     logout()
     navigate('/login')
   }
 
+  // Genereaza un buton de navigatie care se evidentiaza daca e pe ruta activa.
   const navBtn = (path: string, label: string) => {
     const active = location.pathname === path
     return (
@@ -52,10 +56,10 @@ export default function NavBar() {
 
       <div style={{ display: 'flex', gap: '0.25rem' }}>
         {navBtn('/dashboard', 'DASHBOARD')}
-        {navBtn('/tickets', 'TICHETE')}
       </div>
 
       <div className="db-nav-right">
+        {/* Afiseaza numele si echipa userului curent */}
         <div className="db-nav-user">
           <span className="db-nav-username">{user?.username}</span>
           <span className="db-nav-role">{user?.team?.toUpperCase()}</span>
