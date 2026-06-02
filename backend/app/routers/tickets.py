@@ -42,7 +42,7 @@ def exec_tickets_procedure(db: Session, params: dict[str, Any]):
 def get_tickets(
     page: int = 1,
     limit: int = Query(10, enum = [10, 25, 50]),
-    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
+    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY"]),
     sort_order: str = Query("DESC", enum = ["ASC", "DESC"]),
     search: Optional[str] = None,
     status: Optional[str] = None,
@@ -52,19 +52,6 @@ def get_tickets(
     db: Session = Depends(get_db),
 ):
     skip = (page - 1) * limit
-    
-    query = text("""
-        EXEC dbo.GetPaginatedTickets
-            @search = :search,
-            @status = :status,
-            @team = :team,
-            @start_date = :start_date,
-            @end_date = :end_date,
-            @sort_by = :sort_by,
-            @sort_order = :sort_order,
-            @skip = :skip,
-            @limit = :limit
-    """)
     
     params = {
         "search": search,
@@ -78,7 +65,7 @@ def get_tickets(
         "limit": limit
     }
     
-    result = db.execute(query, params)
+    result = exec_tickets_procedure(db, params)
     raw_cursor = result.cursor  # get before SQLAlchemy closes it
 
     col_names = [col[0] for col in raw_cursor.description] if raw_cursor.description else []
@@ -114,7 +101,52 @@ def get_tickets(
         "page": page,
         "pages": total_pages
     }
- 
+    
+
+@router.get("/teams")
+def get_teams(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT TEAM_NAME FROM dbo.TEAMS
+                WHERE TEAM_NAME IS NOT NULL
+                ORDER BY TEAM_NAME""")
+    
+    result = db.execute(query)
+    teams_list = [row[0] for row in result.fetchall()]
+    return teams_list
+
+
+@router.get("/companies")
+def get_companies(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT COMPANY_NAME FROM dbo.COMPANIES
+                WHERE COMPANY_NAME IS NOT NULL
+                ORDER BY COMPANY_NAME""")
+    
+    result = db.execute(query)
+    companies_list = [row[0] for row in result.fetchall()]
+    return companies_list
+
+@router.get("/statuses")
+def get_statuses(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT STATUS_NAME FROM dbo.STATUSES
+                WHERE STATUS_NAME IS NOT NULL
+                ORDER BY STATUS_NAME""")
+    
+    result = db.execute(query)
+    statuses_list = [row[0] for row in result.fetchall()]
+    return statuses_list
+
+@router.get("/priorities")
+def get_priorities(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT PRIORITY_NAME FROM dbo.PRIORITIES
+                WHERE PRIORITY_NAME IS NOT NULL
+                ORDER BY PRIORITY_NAME""")
+    
+    result = db.execute(query)
+    priorities_list = [row[0] for row in result.fetchall()]
+    return priorities_list                
 
 
 @router.get("/export")
