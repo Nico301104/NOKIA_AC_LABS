@@ -98,7 +98,52 @@ def get_tickets(
         "page": page,
         "pages": total_pages
     }
- 
+    
+
+@router.get("/teams")
+def get_teams(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT TEAM_NAME FROM dbo.TEAMS
+                WHERE TEAM_NAME IS NOT NULL
+                ORDER BY TEAM_NAME""")
+    
+    result = db.execute(query)
+    teams_list = [row[0] for row in result.fetchall()]
+    return teams_list
+
+
+@router.get("/companies")
+def get_companies(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT COMPANY_NAME FROM dbo.COMPANIES
+                WHERE COMPANY_NAME IS NOT NULL
+                ORDER BY COMPANY_NAME""")
+    
+    result = db.execute(query)
+    companies_list = [row[0] for row in result.fetchall()]
+    return companies_list
+
+@router.get("/statuses")
+def get_statuses(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT STATUS_NAME FROM dbo.STATUSES
+                WHERE STATUS_NAME IS NOT NULL
+                ORDER BY STATUS_NAME""")
+    
+    result = db.execute(query)
+    statuses_list = [row[0] for row in result.fetchall()]
+    return statuses_list
+
+@router.get("/priorities")
+def get_priorities(db: Session = Depends(get_db)):
+    query = text("""
+                SELECT PRIORITY_NAME FROM dbo.PRIORITIES
+                WHERE PRIORITY_NAME IS NOT NULL
+                ORDER BY PRIORITY_NAME""")
+    
+    result = db.execute(query)
+    priorities_list = [row[0] for row in result.fetchall()]
+    return priorities_list                
 
 
 @router.get("/export")
