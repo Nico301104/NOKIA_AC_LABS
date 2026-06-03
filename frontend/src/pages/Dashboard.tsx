@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import NavBar from '../components/NavBar'
 import api from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import TicketDetailModal from '../components/TicketDetailModal'
+import { STATUS_NAMES } from '../services/tickets'
 import './Dashboard.css'
 
 type SortField = 'SUBMIT_DATETIME' | 'STATUS' | 'PRIORITY' | 'COMPANY' | 'TEAM'
@@ -29,10 +32,13 @@ interface PageData {
 
 function statusStyle(status: string | null) {
   const map: Record<string, { bg: string; color: string }> = {
-    Open:     { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
-    Closed:   { bg: 'rgba(100,116,139,0.12)', color: '#475569' },
-    Resolved: { bg: 'rgba(34,197,94,0.12)',   color: '#16a34a' },
-    Pending:  { bg: 'rgba(234,179,8,0.12)',   color: '#b45309' },
+    Open:          { bg: 'rgba(14,165,233,0.12)',  color: '#0369a1' },
+    Closed:        { bg: 'rgba(100,116,139,0.12)', color: '#475569' },
+    Resolved:      { bg: 'rgba(34,197,94,0.12)',   color: '#16a34a' },
+    Pending:       { bg: 'rgba(234,179,8,0.12)',   color: '#b45309' },
+    'In Progress': { bg: 'rgba(37,99,235,0.12)',   color: 'var(--violet-700)' },
+    Assigned:      { bg: 'rgba(99,102,241,0.14)',  color: '#4f46e5' },
+    Create:        { bg: 'rgba(168,85,247,0.12)',  color: '#9333ea' },
   }
   return (status ? map[status] : undefined) ?? { bg: 'rgba(37,99,235,0.1)', color: 'var(--violet-700)' }
 }
@@ -124,6 +130,11 @@ function PagBtn({ onClick, disabled, children }: { onClick: () => void; disabled
 }
 
 export default function Dashboard() {
+  const { user } = useAuth()
+
+  // Tichetul deschis în modalul de acțiuni (schimbare status / asignare).
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+
   // Stats — fetch separat, neafectat de filtre
   const [statsTotal, setStatsTotal]       = useState(0)
   const [statsOpen, setStatsOpen]         = useState(0)
@@ -156,24 +167,29 @@ export default function Dashboard() {
     const fetchStats = async () => {
       setStatsLoading(true)
       try {
-        const [totalRes, openRes, pendingRes, closedRes, resolvedRes] = await Promise.all([
+        const [totalRes, openRes, pendingRes, inProgressRes, assignedRes, closedRes, resolvedRes] = await Promise.all([
           api.get('/tickets/', { params: { page: 1, limit: 50 } }),
           api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Open' } }),
           api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Pending' } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'In Progress' } }),
+          api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Assigned' } }),
           api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Closed' } }),
           api.get('/tickets/', { params: { page: 1, limit: 10, status: 'Resolved' } }),
         ])
 
-        const total    = totalRes.data.total as number
-        const open     = openRes.data.total as number
-        const pending  = pendingRes.data.total as number
-        const closed   = closedRes.data.total as number
-        const resolved = resolvedRes.data.total as number
-        const pages    = totalRes.data.pages as number
+        const total      = totalRes.data.total as number
+        const open       = openRes.data.total as number
+        const pending    = pendingRes.data.total as number
+        const inProgress = inProgressRes.data.total as number
+        const assigned   = assignedRes.data.total as number
+        const closed     = closedRes.data.total as number
+        const resolved   = resolvedRes.data.total as number
+        const pages      = totalRes.data.pages as number
 
         setStatsTotal(total)
         setStatsOpen(open)
-        setStatsInLucru(pending)
+        // „În lucru" = tichete preluate / în procesare: Assigned + In Progress + Pending
+        setStatsInLucru(assigned + inProgress + pending)
         setStatsFinalizate(closed + resolved)
 
         // Numărăm tichetele Critical paginând prin tot DB-ul (limit=50 per pagină)
@@ -196,15 +212,10 @@ export default function Dashboard() {
     fetchStats()
   }, [])
 
-  // Fetch lista de echipe pentru select
+  // Fetch lista de echipe pentru select (endpoint dedicat: GET /tickets/teams)
   useEffect(() => {
-    api.get('/tickets/', { params: { page: 1, limit: 50, sort_by: 'TEAM', sort_order: 'ASC' } })
-      .then(r => {
-        const unique = [...new Set(
-          (r.data.items as Ticket[]).map(t => t.Team).filter((t): t is string => !!t)
-        )].sort()
-        setTeams(unique)
-      })
+    api.get('/tickets/teams')
+      .then(r => setTeams(r.data as string[]))
       .catch(() => {})
   }, [])
 
@@ -296,7 +307,7 @@ export default function Dashboard() {
         </div>
 
         {/* Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
+        <div className="db-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
           <select value={limit} onChange={e => { setLimit(Number(e.target.value) as Limit); setPage(1) }} style={ctrlStyle}>
             <option value={10}>10 / pagină</option>
             <option value={25}>25 / pagină</option>
@@ -357,7 +368,7 @@ export default function Dashboard() {
         </div>
 
         {/* Bara de filtrare */}
-        <div style={{
+        <div className="db-filterbar" style={{
           display: 'flex',
           gap: '0.75rem',
           alignItems: 'flex-end',
@@ -385,10 +396,7 @@ export default function Dashboard() {
               style={{ ...filterInputStyle, width: 140 }}
             >
               <option value="">Toate</option>
-              <option value="Open">Open</option>
-              <option value="Closed">Closed</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Pending">Pending</option>
+              {STATUS_NAMES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </FilterGroup>
           <FilterGroup label="ECHIPĂ">
@@ -457,7 +465,7 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="db-table-wrap">
-            <div style={{ overflowY: 'auto', height: '100%' }}>
+            <div style={{ overflow: 'auto', height: '100%' }}>
               {loading ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', letterSpacing: '0.2em' }}>
                   SE ÎNCARCĂ...
@@ -483,7 +491,12 @@ export default function Dashboard() {
                       const ss = statusStyle(t.Status)
                       const pc = priorityColor(t.Priority)
                       return (
-                        <tr key={t.Ticket_Number} className={t.Priority === 'Critical' ? 'db-row--critical' : ''}>
+                        <tr
+                          key={t.Ticket_Number}
+                          onClick={() => setSelectedTicket(t)}
+                          className={`db-row--clickable${t.Priority === 'Critical' ? ' db-row--critical' : ''}`}
+                          title="Click pentru detalii"
+                        >
                           <td><span className="db-ticket-id">{t.Ticket_Number}</span></td>
                           <td><span className="db-badge" style={{ background: ss.bg, color: ss.color }}>{t.Status}</span></td>
                           <td>
@@ -528,6 +541,16 @@ export default function Dashboard() {
             </div>
           )
         })()}
+
+        {/* Pop-up detalii tichet (cu acțiuni: schimbare status / preluare / asignare admin) */}
+        {selectedTicket && (
+          <TicketDetailModal
+            ticket={selectedTicket}
+            currentUser={user?.username ?? ''}
+            onClose={() => setSelectedTicket(null)}
+            onDone={fetchTickets}
+          />
+        )}
 
       </div>
     </div>

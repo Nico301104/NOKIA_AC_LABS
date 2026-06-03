@@ -42,7 +42,7 @@ def exec_tickets_procedure(db: Session, params: dict[str, Any]):
 def get_tickets(
     page: int = 1,
     limit: int = Query(10, enum = [10, 25, 50]),
-    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY"]),
+    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
     sort_order: str = Query("DESC", enum = ["ASC", "DESC"]),
     search: Optional[str] = None,
     status: Optional[str] = None,

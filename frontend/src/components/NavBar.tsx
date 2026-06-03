@@ -1,42 +1,17 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import '../pages/Dashboard.css'
 
-// Bara de navigatie afisata pe toate paginile protejate.
-// Arata numele si echipa userului autentificat, butoanele de navigatie si logout.
+// Bara de navigatie afisata pe pagina protejata.
+// Arata numele si echipa userului autentificat si butonul de logout.
 export default function NavBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
 
   const handleLogout = () => {
     // Sterge sesiunea din context si localStorage, apoi trimite la login.
     logout()
     navigate('/login')
-  }
-
-  // Genereaza un buton de navigatie care se evidentiaza daca e pe ruta activa.
-  const navBtn = (path: string, label: string) => {
-    const active = location.pathname === path
-    return (
-      <button
-        onClick={() => navigate(path)}
-        style={{
-          padding: '0.35rem 0.9rem',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.62rem',
-          letterSpacing: '0.15em',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          border: active ? '1px solid rgba(37,99,235,0.2)' : '1px solid transparent',
-          background: active ? 'rgba(37,99,235,0.08)' : 'transparent',
-          color: active ? 'var(--violet-700)' : 'var(--text-muted)',
-          transition: 'all 0.15s',
-        }}
-      >
-        {label}
-      </button>
-    )
   }
 
   return (
@@ -52,10 +27,6 @@ export default function NavBar() {
           <div className="db-nav-title">NOKIA</div>
           <div className="db-nav-sub">TICKET FILTER</div>
         </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '0.25rem' }}>
-        {navBtn('/dashboard', 'DASHBOARD')}
       </div>
 
       <div className="db-nav-right">
