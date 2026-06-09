@@ -18,11 +18,32 @@ Nokia_Team3/
 └── frontend/         # React + Vite (TypeScript)
     └── src/
         ├── pages/
-        │   ├── Login.tsx
-        │   ├── Dashboard.tsx
-        │   └── Tickets.tsx
-        ├── services/api.ts   # Axios + interceptori
-        └── context/AuthContext.tsx
+        │    ├── Home
+        │    │   └── Home.tsx
+        │    └── Dashboard
+        │        └── Dashboard.tsx
+        ├── components/
+        │   ├── footer
+        │   │   └── Footer.tsx
+        │   ├── header
+        │   │   └── Header.tsx
+        │   ├── KPICollapsibleDrawer
+        │   │   └── KPICollapsibleDrawer.tsx
+        │   ├── KPIDashBoard
+        │   │   ├── KPIBarChart
+        │   │   │   └── KPIBarChart.tsx
+        │   │   ├── KPICard
+        │   │   │   └── KPICard.tsx
+        │   │   ├── KPIDonutChart
+        │   │   │   └── KPIDonutChart.tsx
+        │   │   ├── KPIDashBoard.tsx
+        │   └── KPIFilterBar
+        │       └── KPIFilterBar.tsx
+        └── types/
+            ├── KPI.ts
+            └──  Ticket.ts
+      
+
 ```
 
 ---
