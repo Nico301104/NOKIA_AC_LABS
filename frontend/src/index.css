@@ -1,0 +1,113 @@
+:root {
+  --color-primary: #2563eb;
+  --color-primary-light: #4f86f7;
+  --color-cyan: #38bdf8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f5ff;
+  --color-text-heading: #0b1d4f;
+  --color-text-body: #334155;
+  --color-text-muted: #94a3b8;
+  --color-critical: #dc2626;
+  --color-status-open: #0369a1;
+  --color-status-resolved: #16a34a;
+  --color-status-pending: #b45309;
+  --color-status-closed: #475569;
+  --border-panel: 1px solid rgba(37, 99, 235, 0.1);
+  --border-control: 1px solid #e2e8f0;
+  --shadow-card: 0 2px 12px rgba(37, 99, 235, 0.06);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --hover-bg: rgba(37, 99, 235, 0.06);
+  --hover-bg-strong: rgba(37, 99, 235, 0.08);
+  --btn-secondary-bg: rgba(37, 99, 235, 0.06);
+  --critical-border: 3px solid var(--color-critical);
+  --critical-row-bg: rgba(220, 38, 38, 0.04);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Sora', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --nokia-blue: var(--color-primary);
+  --text-main: var(--color-text-body);
+  --text-heading: var(--color-text-heading);
+  --border-light: #e2e8f0;
+  --bg-white: var(--color-surface);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text-body);
+  background-color: #f4f7ff;
+  background-image:
+    linear-gradient(180deg, rgba(244, 247, 255, 0) 0%, rgba(37, 99, 235, 0.03) 100%),
+    linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 24px 24px, 24px 24px;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text-heading);
+  margin: 0 0 0.75rem;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.125rem;
+}
+
+p {
+  margin: 0 0 1rem;
+  color: var(--color-text-body);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--color-primary-light);
+}
+
+.font-mono,
+.label-tech {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
