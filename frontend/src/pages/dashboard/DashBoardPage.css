@@ -1,0 +1,179 @@
+
+/* * {
+  outline: 1px solid red !important;
+} */
+
+.dashboard-container {
+  padding: 0.25rem 2rem 1rem 2rem;
+  flex: 1;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.table-wrapper {
+  background: var(--color-surface);
+  border: var(--border-panel);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+}
+
+.nokia-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.nokia-table th {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-heading);
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: var(--border-panel);
+}
+
+.nokia-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: var(--border-panel);
+  color: var(--color-text-body);
+  font-family: var(--font-body);
+}
+
+.ticket-id {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.ticket-date {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.priority-critical {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-critical);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.open {
+  background: rgba(3, 105, 161, 0.12);
+  color: var(--color-status-open);
+}
+
+.status-badge.in-progress {
+  background: rgba(79, 134, 247, 0.12);
+  color: var(--color-primary-light);
+}
+
+.status-badge.resolved {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--color-status-resolved);
+}
+
+.status-badge.pending {
+  background: rgba(180, 83, 9, 0.12);
+  color: var(--color-status-pending);
+}
+
+.status-badge.closed {
+  background: rgba(71, 85, 105, 0.12);
+  color: var(--color-status-closed);
+}
+
+.nokia-table tbody tr:hover {
+  background-color: var(--hover-bg);
+}
+
+@keyframes critical-pulse {
+  0%, 100% {
+    box-shadow: inset var(--critical-border), 0 0 0 rgba(220, 38, 38, 0);
+  }
+  50% {
+    box-shadow: inset var(--critical-border), 0 0 12px rgba(220, 38, 38, 0.15);
+  }
+}
+
+.nokia-table tbody tr.row-critical {
+  background-color: var(--critical-row-bg);
+  border-left: var(--critical-border);
+  animation: critical-pulse 2.5s ease-in-out infinite;
+}
+
+.nokia-table tbody tr.row-critical:hover {
+  background-color: rgba(220, 38, 38, 0.06);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  color: var(--color-text-heading);
+}
+
+.data-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drilldown-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  background: rgba(37, 99, 235, 0.06);
+  color: var(--color-text-heading);
+  border: var(--border-panel);
+  border-radius: var(--radius-lg);
+  padding: 6px 10px;
+}
+
+.drilldown-chip button {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 14px;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+
+.result-count {
+  margin: 6px 0 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}

@@ -1,0 +1,71 @@
+/* ==========================================================================
+   COLLAPSIBLE DRAWER ACCORDION ENGINE
+   ========================================================================== */
+
+.collapsible-drawer-wrapper {
+  width: 100%;
+}
+
+.collapsible-drawer-control {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.drawer-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-muted) 100%);
+  border: var(--border-control);
+  color: var(--color-text-body);
+  padding: 0.625rem 1.125rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.drawer-toggle-btn:hover {
+  background: var(--hover-bg-strong);
+  color: var(--color-text-heading);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.arrow-indicator {
+  font-size: 0.625rem;
+  transform: rotate(-90deg);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--color-text-muted);
+}
+
+.arrow-indicator.is-open {
+  transform: rotate(0deg);
+  color: var(--color-primary);
+}
+
+/* Dropdown Drawer Section Visibilities */
+.collapsible-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out, margin 0.3s ease-in-out;
+}
+
+.collapsible-drawer-content.expanded {
+  max-height: 2000px;
+  opacity: 1;
+  margin-bottom: 0.75rem;
+}
+
+.collapsible-drawer-content.collapsed {
+  max-height: 0px;
+  opacity: 0;
+  margin-bottom: 0rem;
+  pointer-events: none; /* Block clicking internal fields while hidden */
+}
