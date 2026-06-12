@@ -8,7 +8,7 @@ import {
   adminAssignTicket,
   extractError,
 } from '../services/tickets'
-import { getMyTeam, TeamUser } from '../services/users'
+import { getMyTeam, type TeamUser } from '../services/users'
 
 // Forma de tichet primită din listă (exact câmpurile întoarse de GetPaginatedTickets).
 export interface DetailTicket {

@@ -1,6 +1,7 @@
 export interface SimpleKPI {
-  label: string; 
-  value: number;
+  label: string;
+  /* string permite placeholderul "..." cat timp datele se incarca */
+  value: number | string;
   unit?: string;
 }
 

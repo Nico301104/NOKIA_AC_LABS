@@ -17,9 +17,6 @@ export const DashboardPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const dataSectionRef = useRef<HTMLElement | null>(null);
 
-  // NEW: State handling whether the analytics drop-drawer layout is visible
-  const [isControlsExpanded, setIsControlsExpanded] = useState<boolean>(true);
-
   const [filters, setFilters] = useState<FiltersState>({
     status: [],
     priority: [],
@@ -29,7 +26,7 @@ export const DashboardPage = () => {
   });
 
   const [chartSelection, setChartSelection] = useState<{
-    key: 'STATUS' | 'PRIORITY' | 'TEAM' | 'CATEGORY_TIER_1' | 'CATEGORY_TIER_2' | 'CATEGORY_TIER_3' | 'SLA_STATUS';
+    key: 'STATUS' | 'PRIORITY' | 'TEAM' | 'CATEGORY_TIER_1' | 'CATEGORY_TIER_2' | 'CATEGORY_TIER_3' | 'SLA_STATUS' | 'SLA_INTERVAL';
     value: string;
     source: string;
   } | null>(null);
