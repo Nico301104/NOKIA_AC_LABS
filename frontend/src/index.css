@@ -1,41 +1,37 @@
 /* =========================================================
-   NOKIA TICKET FILTER — Futuristic Blue / White Theme
+   NOKIA TICKETING SYSTEM — Global Theme (Modul 1 + Modul 2)
+   Futuristic Blue / White
    ========================================================= */
 
 :root {
-  /* Bază — alb/albastru deschis */
+  /* ---- Modul 1: bază alb/albastru ---- */
   --bg-void:    #f4f7ff;
   --bg-deep:    #eaf0ff;
   --bg-panel:   #ffffff;
   --bg-elevated:#f0f5ff;
 
-  /* Albastru principal */
   --violet-900: #0b1d4f;
   --violet-700: #1549b8;
   --violet-500: #2563eb;
   --violet-400: #4f86f7;
   --violet-300: #93c5fd;
 
-  /* Cyan / electric — accent */
   --signal-900: #0c3a5e;
   --signal-700: #0369a1;
   --signal-500: #0ea5e9;
   --signal-400: #38bdf8;
   --signal-300: #7dd3fc;
 
-  /* Gri neutru */
   --graphite-900: #f1f5f9;
   --graphite-700: #e2e8f0;
   --graphite-500: #94a3b8;
   --graphite-300: #475569;
   --graphite-100: #1e293b;
 
-  /* Text — întunecat pe fundal alb */
   --text-primary:   #0b1d4f;
   --text-secondary: #334155;
   --text-muted:     #94a3b8;
 
-  /* Shadows */
   --shadow-violet:
     0 20px 60px -10px rgba(37, 99, 235, 0.25);
   --shadow-green:
@@ -46,30 +42,70 @@
     0 24px 56px -12px rgba(37, 99, 235, 0.18),
     0 4px 16px -4px rgba(37, 99, 235, 0.12);
 
-  /* Fonts */
+  /* ---- Modul 2: variabile KPI dashboard ---- */
+  --color-primary: #2563eb;
+  --color-primary-light: #4f86f7;
+  --color-cyan: #38bdf8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f5ff;
+  --color-text-heading: #0b1d4f;
+  --color-text-body: #334155;
+  --color-text-muted: #94a3b8;
+  --color-critical: #dc2626;
+  --color-status-open: #0369a1;
+  --color-status-resolved: #16a34a;
+  --color-status-pending: #b45309;
+  --color-status-closed: #475569;
+  --border-panel: 1px solid rgba(37, 99, 235, 0.1);
+  --border-control: 1px solid #e2e8f0;
+  --shadow-card: 0 2px 12px rgba(37, 99, 235, 0.06);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --hover-bg: rgba(37, 99, 235, 0.06);
+  --hover-bg-strong: rgba(37, 99, 235, 0.08);
+  --btn-secondary-bg: rgba(37, 99, 235, 0.06);
+  --critical-border: 3px solid var(--color-critical);
+  --critical-row-bg: rgba(220, 38, 38, 0.04);
+
+  /* ---- Fonturi comune ---- */
   --font-display: 'Syne', sans-serif;
   --font-body:    'Sora', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
+
+  /* ---- Aliasuri Modul 2 ---- */
+  --nokia-blue: var(--color-primary);
+  --text-main: var(--color-text-body);
+  --text-heading: var(--color-text-heading);
+  --border-light: #e2e8f0;
+  --bg-white: var(--color-surface);
 }
 
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
 }
 
 body {
   font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--text-primary);
   background: var(--bg-void);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 
   background-image:
     radial-gradient(ellipse 80% 60% at 15% 10%, rgba(37, 99, 235, 0.07) 0%, transparent 55%),
@@ -95,6 +131,28 @@ body::before {
 #root {
   position: relative;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text-heading);
+  margin: 0 0 0.75rem;
+  line-height: 1.25;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.125rem; }
+
+p {
+  margin: 0 0 1rem;
+  color: var(--color-text-body);
 }
 
 button {
@@ -116,6 +174,13 @@ input {
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.font-mono,
+.label-tech {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
 }
 
 ::selection {

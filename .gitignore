@@ -1,8 +1,52 @@
-node_modules
-dist
+# ==========================================
+# React / TypeScript / Frontend
+# ==========================================
+node_modules/
+dist/
+build/                     # React production build folder
+.vite/                     # If you are using Vite
+.eslintcache               # Linter cache
+*.tsbuildinfo              # TypeScript build cache
+
+# ==========================================
+# Python / Backend
+# ==========================================
+__pycache__/
+*.py[cod]                  # Matches .pyc, .pyo, .pyd
+*$py.class
+*.cfg                      # Local config files (like pip config)
+
+# Python Virtual Environments (Crucial to ignore!)
+.venv/
+venv/
+ENV/
+env/
+
+# ==========================================
+# Environment / Secrets (Never commit these!)
+# ==========================================
 .env
 .env.local
-.DS_Store
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem                      # SSL/SSH keys
+
+# ==========================================
+# OS / IDE Specific
+# ==========================================
+.DS_Store                  # macOS
+Thumbs.db                  # Windows
+.vscode/                   # VS Code settings (optional, but recommended)
+.idea/                     # JetBrains (PyCharm, WebStorm) settings
+
+# ==========================================
+# Logs and Databases
+# ==========================================
 *.log
-__pycache__/
-*.pyc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+instance/                  # Flask instance folder (if using Flask)
+*.db                       # SQLite or local databases
+*.sqlite3
