@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import '../pages/Dashboard.css'
 
@@ -27,6 +27,19 @@ export default function NavBar() {
           <div className="db-nav-title">NOKIA</div>
           <div className="db-nav-sub">TICKET FILTER</div>
         </div>
+      </div>
+
+      {/* Linkuri catre celelalte module ale aplicatiei */}
+      <div className="db-nav-links">
+        <NavLink to="/dashboard" className={({ isActive }) => `db-nav-link${isActive ? ' active' : ''}`}>
+          TICHETE
+        </NavLink>
+        <NavLink to="/kpi" className={({ isActive }) => `db-nav-link${isActive ? ' active' : ''}`}>
+          KPI DASHBOARD
+        </NavLink>
+        <NavLink to="/chat" className={({ isActive }) => `db-nav-link${isActive ? ' active' : ''}`}>
+          ASISTENT AI
+        </NavLink>
       </div>
 
       <div className="db-nav-right">

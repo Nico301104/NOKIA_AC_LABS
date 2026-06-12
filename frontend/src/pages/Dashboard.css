@@ -71,6 +71,28 @@
   letter-spacing: 0.04em;
 }
 
+.db-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+.db-nav-link {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.db-nav-link:hover {
+  color: var(--violet-500);
+}
+.db-nav-link.active {
+  color: var(--violet-500);
+  border-bottom-color: var(--violet-500);
+}
+
 .db-nav-right {
   display: flex;
   align-items: center;
