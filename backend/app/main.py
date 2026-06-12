@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .routers import auth, tickets, users, kpi
+from .routers import auth, tickets, users, kpi, chat
 from .database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(tickets.router)
 app.include_router(users.router)
 app.include_router(kpi.router)
+app.include_router(chat.router)
 
 # Endpoint Test 
 @app.get("/", tags=["Health Check"])

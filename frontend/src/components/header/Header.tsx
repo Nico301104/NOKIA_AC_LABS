@@ -31,6 +31,14 @@ export const Header = () => {
             Tichete
           </NavLink>
         </li>
+        <li>
+          <NavLink
+            to="/chat"
+            className={({ isActive }) => (isActive ? 'active-link' : '')}
+          >
+            Asistent AI
+          </NavLink>
+        </li>
       </ul>
     </nav>
   );

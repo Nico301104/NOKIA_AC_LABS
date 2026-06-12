@@ -1,4 +1,4 @@
-﻿"""
+"""
 Script de adaugare in baza de date a 1000 de noi tickete
 
 A NU SE RULA DE 2 ORI, 
@@ -17,7 +17,7 @@ from app.database import SessionLocal
 NUMBER_OF_TICKETS_TO_GENERATE = 1000
 
 
-# Companiile deja existente Ã®n insert.sql.
+# Companiile deja existente în insert.sql.
 COMPANIES = ["Vodafone", "Orange", "Digi", "Telekom"]
 
 
@@ -406,13 +406,13 @@ NOTES_BY_STATUS = {
 def make_email(full_name: str) -> str:
     normalized = (
         full_name.lower()
-        .replace("Äƒ", "a")
-        .replace("Ã¢", "a")
-        .replace("Ã®", "i")
-        .replace("È™", "s")
-        .replace("ÅŸ", "s")
-        .replace("È›", "t")
-        .replace("Å£", "t")
+        .replace("ă", "a")
+        .replace("â", "a")
+        .replace("î", "i")
+        .replace("ș", "s")
+        .replace("ş", "s")
+        .replace("ț", "t")
+        .replace("ţ", "t")
     )
     parts = normalized.split()
     if len(parts) >= 2:
@@ -443,7 +443,7 @@ def ensure_teams_and_users(db):
         company_name = team["company"]
 
         if company_name not in company_ids:
-            raise ValueError(f"Compania '{company_name}' nu existÄƒ Ã®n tabela COMPANIES.")
+            raise ValueError(f"Compania '{company_name}' nu există în tabela COMPANIES.")
 
         company_id = company_ids[company_name]
 
@@ -470,7 +470,7 @@ def ensure_teams_and_users(db):
 
     db.commit()
 
-    # InserÄƒm userii dupÄƒ ce toate echipele existÄƒ.
+    # Inserăm userii după ce toate echipele există.
     for team_name, users in USERS_BY_TEAM_NAME.items():
         for full_name in users:
             existing_user = db.execute(
@@ -664,7 +664,7 @@ def main():
         team_runtime_data = get_team_runtime_data(db)
 
         if not team_runtime_data:
-            raise RuntimeError("Nu existÄƒ echipe disponibile pentru generare.")
+            raise RuntimeError("Nu există echipe disponibile pentru generare.")
 
         start_number = get_next_ticket_number(db)
 

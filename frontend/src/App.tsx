@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { HomePage } from './pages/home/HomePage'
 import { DashboardPage } from './pages/dashboard/DashBoardPage'
+import Chat from './Chat'
 
 export default function App() {
   return (
@@ -25,6 +26,16 @@ export default function App() {
 
       {/* Modul 2 — KPI dashboard */}
       <Route path="/kpi" element={<DashboardPage />} />
+
+      {/* Modul 3 — asistent chat AI */}
+      <Route
+        path="/chat"
+        element={
+          <div className="chat-page">
+            <Chat />
+          </div>
+        }
+      />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
