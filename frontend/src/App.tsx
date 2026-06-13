@@ -3,42 +3,47 @@ import './App.css'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
-import { HomePage } from './pages/home/HomePage'
+import AppLayout from './components/AppLayout/AppLayout'
 import { DashboardPage } from './pages/dashboard/DashBoardPage'
 import Chat from './Chat'
 
 export default function App() {
   return (
     <Routes>
-      {/* Modul 2 — landing page */}
-      <Route path="/" element={<HomePage />} />
-
-      {/* Modul 1 — autentificare + dashboard tichete */}
+      {/* Login — standalone, fara navbar/shell */}
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
 
-      {/* Modul 2 — KPI dashboard */}
-      <Route path="/kpi" element={<DashboardPage />} />
+      {/* Toate paginile cu navigatie impart acelasi shell (navbar unic + tranzitii) */}
+      <Route element={<AppLayout />}>
+        {/* Landing: dashboard-ul de tichete */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-      {/* Modul 3 — asistent chat AI */}
-      <Route
-        path="/chat"
-        element={
-          <div className="chat-page">
-            <Chat />
-          </div>
-        }
-      />
+        {/* Dashboard tichete (protejat) — landing dupa login */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+        {/* KPI */}
+        <Route path="/kpi" element={<DashboardPage />} />
+
+        {/* Asistent chat AI */}
+        <Route
+          path="/chat"
+          element={
+            <div className="chat-page">
+              <Chat />
+            </div>
+          }
+        />
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Route>
     </Routes>
   )
 }

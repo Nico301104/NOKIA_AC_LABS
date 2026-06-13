@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react'
-import NavBar from '../components/NavBar'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import TicketDetailModal from '../components/TicketDetailModal'
@@ -292,7 +291,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <NavBar />
       <div className="db-content">
 
         {/* Carduri statistici */}
@@ -306,68 +304,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Toolbar */}
-        <div className="db-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
-          <select value={limit} onChange={e => { setLimit(Number(e.target.value) as Limit); setPage(1) }} style={ctrlStyle}>
-            <option value={10}>10 / pagină</option>
-            <option value={25}>25 / pagină</option>
-            <option value={50}>50 / pagină</option>
-          </select>
-          <select value={sortBy} onChange={e => { setSortBy(e.target.value as SortField); setPage(1) }} style={ctrlStyle}>
-            <option value="SUBMIT_DATETIME">Sortare: Data</option>
-            <option value="PRIORITY">Sortare: Prioritate</option>
-            <option value="STATUS">Sortare: Status</option>
-            <option value="COMPANY">Sortare: Companie</option>
-            <option value="TEAM">Sortare: Echipă</option>
-          </select>
-          <button
-            onClick={() => setSortOrder(o => o === 'ASC' ? 'DESC' : 'ASC')}
-            title={sortOrder === 'ASC' ? 'Crescător' : 'Descrescător'}
-            style={{ ...ctrlStyle, minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            {sortOrder === 'ASC' ? '↑' : '↓'}
-          </button>
-          <button
-            onClick={() => handleExport('csv')}
-            disabled={exporting !== null}
-            style={{
-              padding: '0.4rem 0.9rem',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.62rem',
-              letterSpacing: '0.15em',
-              color: '#ffffff',
-              background: 'linear-gradient(180deg, var(--violet-400), var(--violet-700))',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: exporting !== null ? 'not-allowed' : 'pointer',
-              opacity: exporting !== null ? 0.6 : 1,
-              boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
-            }}
-          >
-            {exporting === 'csv' ? 'EXPORT...' : 'EXPORT CSV'}
-          </button>
-          <button
-            onClick={() => handleExport('xlsx')}
-            disabled={exporting !== null}
-            style={{
-              padding: '0.4rem 0.9rem',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.62rem',
-              letterSpacing: '0.15em',
-              color: '#ffffff',
-              background: 'linear-gradient(180deg, #16a34a, #15803d)',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: exporting !== null ? 'not-allowed' : 'pointer',
-              opacity: exporting !== null ? 0.6 : 1,
-              boxShadow: '0 4px 12px rgba(22,163,74,0.35)',
-            }}
-          >
-            {exporting === 'xlsx' ? 'EXPORT...' : 'EXPORT XLSX'}
-          </button>
-        </div>
-
-        {/* Bara de filtrare */}
+        {/* Bara de filtrare — include sortarea si exportul, aliniate la dreapta pe aceeasi linie */}
         <div className="db-filterbar" style={{
           display: 'flex',
           gap: '0.75rem',
@@ -448,6 +385,67 @@ export default function Dashboard() {
               ✕ RESET FILTRE
             </button>
           )}
+
+          {/* Sortare + export — impinse la dreapta, pe aceeasi linie cu filtrele */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <select value={limit} onChange={e => { setLimit(Number(e.target.value) as Limit); setPage(1) }} style={ctrlStyle}>
+              <option value={10}>10 / pagină</option>
+              <option value={25}>25 / pagină</option>
+              <option value={50}>50 / pagină</option>
+            </select>
+            <select value={sortBy} onChange={e => { setSortBy(e.target.value as SortField); setPage(1) }} style={ctrlStyle}>
+              <option value="SUBMIT_DATETIME">Sortare: Data</option>
+              <option value="PRIORITY">Sortare: Prioritate</option>
+              <option value="STATUS">Sortare: Status</option>
+              <option value="COMPANY">Sortare: Companie</option>
+              <option value="TEAM">Sortare: Echipă</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(o => o === 'ASC' ? 'DESC' : 'ASC')}
+              title={sortOrder === 'ASC' ? 'Crescător' : 'Descrescător'}
+              style={{ ...ctrlStyle, minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {sortOrder === 'ASC' ? '↑' : '↓'}
+            </button>
+            <button
+              onClick={() => handleExport('csv')}
+              disabled={exporting !== null}
+              style={{
+                padding: '0.4rem 0.9rem',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.15em',
+                color: '#ffffff',
+                background: 'linear-gradient(180deg, var(--violet-400), var(--violet-700))',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: exporting !== null ? 'not-allowed' : 'pointer',
+                opacity: exporting !== null ? 0.6 : 1,
+                boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
+              }}
+            >
+              {exporting === 'csv' ? 'EXPORT...' : 'EXPORT CSV'}
+            </button>
+            <button
+              onClick={() => handleExport('xlsx')}
+              disabled={exporting !== null}
+              style={{
+                padding: '0.4rem 0.9rem',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                letterSpacing: '0.15em',
+                color: '#ffffff',
+                background: 'linear-gradient(180deg, #16a34a, #15803d)',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: exporting !== null ? 'not-allowed' : 'pointer',
+                opacity: exporting !== null ? 0.6 : 1,
+                boxShadow: '0 4px 12px rgba(22,163,74,0.35)',
+              }}
+            >
+              {exporting === 'xlsx' ? 'EXPORT...' : 'EXPORT XLSX'}
+            </button>
+          </div>
         </div>
 
         {error && (
