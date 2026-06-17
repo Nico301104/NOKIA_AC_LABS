@@ -120,7 +120,7 @@ function Chat() {
         message: text,
         conversation_id: 1,
         user_id: 1,
-        ticket_id: "1"
+        ticket_id: "INC0001"
       });
       const aiMessage: Message = {
         role: "ai",
