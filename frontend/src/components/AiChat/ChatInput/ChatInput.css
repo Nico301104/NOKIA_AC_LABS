@@ -1,0 +1,91 @@
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(37, 99, 235, 0.1);
+  align-items: center;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 6px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.chat-input:focus {
+  border-color: #2563eb;
+}
+
+.chat-send-btn {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  transition: background-color 0.15s ease;
+}
+
+.chat-send-btn:hover:not(:disabled) { background-color: #4f86f7; }
+.chat-send-btn:disabled { background-color: rgba(37, 99, 235, 0.4); cursor: not-allowed; }
+
+.suggestions-wrapper { position: relative; }
+
+.suggestions-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background-color: rgba(37, 99, 235, 0.06);
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.suggestions-btn:hover { background-color: rgba(37, 99, 235, 0.12); border-color: #2563eb; }
+.suggestions-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+
+.suggestions-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 280px;
+  z-index: 10;
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  color: #334155;
+  transition: background-color 0.1s ease;
+}
+
+.suggestion-item:hover { background-color: rgba(37, 99, 235, 0.06); color: #2563eb; }

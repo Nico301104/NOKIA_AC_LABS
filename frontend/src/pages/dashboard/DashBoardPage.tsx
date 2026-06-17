@@ -1,13 +1,15 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 import { useEffect, useState } from 'react';
 import Footer from '../../components/footer/Footer';
-import { KpiDashboard } from '../../components/KPIDashBoard/KPIDashBoard';
-import { KPICollapsibleDrawer } from '../../components/KPICollapsibleDrawer/KPICollapsibleDrawer';
+import { KpiDashboard } from '../../components/KPI/KPIDashBoard/KPIDashBoard';
+import { KPICollapsibleDrawer } from '../../components/KPI/KPICollapsibleDrawer/KPICollapsibleDrawer';
 import {
   KPIFilterBar,
   type FiltersState,
   type FilterOptions,
   type MultiFilterName
-} from '../../components/KPIFilterBar/KPIFilterBar';
+} from '../../components/KPI/KPIFilterBar/KPIFilterBar';
 import './DashBoardPage.css';
 
 export const DashboardPage = () => {
@@ -26,7 +28,7 @@ export const DashboardPage = () => {
   });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/kpi/filters')
+    fetch(`${API_BASE_URL}/kpi/filters`)
       .then((response) => response.json())
       .then((data) => {
         setFilterOptions({

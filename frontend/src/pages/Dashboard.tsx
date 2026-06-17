@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import TicketDetailModal from '../components/TicketDetailModal'
 import { STATUS_NAMES } from '../services/tickets'
 import './Dashboard.css'
+import Footer from '../components/footer/Footer'
 
 type SortField = 'SUBMIT_DATETIME' | 'STATUS' | 'PRIORITY' | 'COMPANY' | 'TEAM'
 type SortOrder = 'ASC' | 'DESC'
@@ -290,6 +291,7 @@ export default function Dashboard() {
   ]
 
   return (
+    <>
     <div className="dashboard">
       <div className="db-content">
 
@@ -552,5 +554,9 @@ export default function Dashboard() {
 
       </div>
     </div>
+
+        <Footer />
+
+    </>
   )
 }

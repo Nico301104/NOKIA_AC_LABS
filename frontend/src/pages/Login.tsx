@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Login.css'
+import Footer from '../components/footer/Footer'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -28,6 +29,8 @@ export default function Login() {
   }
 
   return (
+    <>
+
     <div className="login-page">
       <div className="orb orb-violet" />
       <div className="orb orb-green" />
@@ -113,5 +116,8 @@ export default function Login() {
         </div>
       </div>
     </div>
+
+      <Footer />
+    </>
   )
 }

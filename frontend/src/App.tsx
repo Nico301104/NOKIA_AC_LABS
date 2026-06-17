@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout/AppLayout'
 import { DashboardPage } from './pages/dashboard/DashBoardPage'
-import Chat from './Chat'
+import {Chat} from './pages/aichat/Chat'
 
 export default function App() {
   return (

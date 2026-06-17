@@ -3,7 +3,7 @@ import axios from 'axios'
 // Instanta Axios configurata cu URL-ul backend-ului si timeout de 10 secunde.
 // VITE_API_URL poate fi setat in .env pentru alte medii (ex. productie).
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

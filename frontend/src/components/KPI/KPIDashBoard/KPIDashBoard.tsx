@@ -1,8 +1,9 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useEffect, useState } from 'react';
-import type { DashboardData } from '../../types/KPI';
+import type { DashboardData } from '../../../types/KPI';
 import KPICard from './KPICard/KPICard.tsx';
 import KPIDonutChart from './KPIDonutChart/KPIDonutChart.tsx';
-import KPIBarChart from './KPIBarChart/KPIBarChart.tsx';
+import KPIBarChart from '../KPIBarChart/KPIBarChart.tsx';
 import './KPIDashBoard.css';
 
 interface KpiDashboardProps {
@@ -50,7 +51,7 @@ export const KpiDashboard = ({ filters, onChartSelection }: KpiDashboardProps) =
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
 
-    fetch(`http://127.0.0.1:8000/kpi/dashboard?${params.toString()}`)
+    fetch(`${API_BASE_URL}/kpi/dashboard?${params.toString()}`)
       .then(res => res.json())
       .then(json => {
         setData(json);

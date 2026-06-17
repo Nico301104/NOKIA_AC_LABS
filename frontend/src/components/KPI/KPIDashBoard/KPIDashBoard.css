@@ -2,6 +2,9 @@
 .kpi-dashboard-container {
   width: 100%;
   box-sizing: border-box;
+
+  padding-bottom: 5rem;
+  overflow-y: visible;
 }
 
 .kpi-dashboard-container.is-loading {
@@ -17,6 +20,14 @@
   border-bottom: var(--border-panel);
   padding-bottom: 0.25rem;
   margin-bottom: 0.25rem;
+  overflow-x: auto;                   
+  white-space: nowrap;                
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tabs button {
@@ -34,6 +45,8 @@
   border-bottom: 2px solid transparent;
   margin-bottom: -0.5625rem;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tabs button:hover {
@@ -53,6 +66,7 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  height: auto;
 }
 
 .dashboard-section {

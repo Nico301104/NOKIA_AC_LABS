@@ -177,3 +177,30 @@
   font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
+
+/* =========================================================
+   MOBILE RESPONSIVE OVERRIDES
+   ========================================================= */
+@media (max-width: 768px) {
+  /* 1. Reduce heavy desktop padding so charts have room to fit */
+  .dashboard-container {
+    padding: 0.5rem 0.75rem 3rem 0.75rem !important;
+  }
+
+  /* 2. Scale down page header spacing */
+  .dashboard-header {
+    margin-bottom: 1rem;
+  }
+
+  /* 3. Safety fallback for charts layout grid on small viewports */
+  .charts-layout-grid {
+    grid-template-columns: 1fr !important; /* Force clean single column stacking */
+    gap: 0.75rem;
+  }
+  
+  /* 4. Prevent grid items from locking layout widths */
+  .charts-layout-grid > * {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
