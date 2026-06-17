@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { DashboardData } from '../../../types/KPI';
 import KPICard from './KPICard/KPICard.tsx';
 import KPIDonutChart from './KPIDonutChart/KPIDonutChart.tsx';
-import KPIBarChart from '../KPIBarChart/KPIBarChart.tsx';
+import KPIBarChart from './KPIBarChart/KPIBarChart.tsx';
 import './KPIDashBoard.css';
 
 interface KpiDashboardProps {

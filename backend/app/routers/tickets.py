@@ -20,19 +20,40 @@ router = APIRouter(
     tags=["Tickets"] # All routes in this router will be tagged as "Tickets" in Swagger UI
 )
 
+
+def map_row_to_ticket(row, col_map):
+    return {
+        "Ticket_Number": row[col_map.get("Ticket_ID")],
+        "Description": row[col_map.get("Description")],
+        "Status": row[col_map.get("Status")],
+        "Priority": row[col_map.get("Priority")],
+        "Company": row[col_map.get("Company")],
+        "Team": row[col_map.get("Team")],
+        "Project": row[col_map.get("Project")],
+        "Assigned_Person": row[col_map.get("Assigned_Person")],
+        "Service": row[col_map.get("Service")],
+        "Submit_Datetime": row[col_map.get("Submit_Datetime")]
+    }
+
 def exec_tickets_procedure(db: Session, params: dict[str, Any]):
     query = text("""
-        EXEC dbo.GetPaginatedTickets
-            @search = :search,
-            @status = :status,
-            @team = :team,
-            @start_date = :start_date,
-            @end_date = :end_date,
-            @sort_by = :sort_by,
-            @sort_order = :sort_order,
-            @skip = :skip,
-            @limit = :limit
-    """)
+            EXEC dbo.GetPaginatedTickets
+                @search = :search,
+                @status = :status,
+                @team = :team,
+                @start_date = :start_date,
+                @end_date = :end_date,
+                @sort_by = :sort_by,
+                @sort_order = :sort_order,
+                @skip = :skip,
+                @limit = :limit,
+                @priority = :priority,
+                @sla_status = :sla_status,
+                @sla_interval = :sla_interval,
+                @category_tier_1 = :category_tier_1,
+                @category_tier_2 = :category_tier_2,
+                @category_tier_3 = :category_tier_3
+        """)
     return db.execute(query, params)
   
 
@@ -40,19 +61,27 @@ def exec_tickets_procedure(db: Session, params: dict[str, Any]):
 # Endpoint to retrieve a paginated list of tickets with sorting and filtering options
 @router.get("/", response_model=PaginatedTickets)
 def get_tickets(
-    page: int = 1,
-    limit: int = Query(10, enum = [10, 25, 50]),
-    sort_by: str = Query("SUBMIT_DATETIME", enum = ["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
-    sort_order: str = Query("DESC", enum = ["ASC", "DESC"]),
-    search: Optional[str] = None,
-    status: Optional[str] = None,
-    team: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    db: Session = Depends(get_db),
+        page: int = 1,
+        limit: int = Query(10, enum=[10, 25, 50]),
+        sort_by: str = Query("SUBMIT_DATETIME", enum=["SUBMIT_DATETIME", "STATUS", "PRIORITY", "COMPANY", "TEAM"]),
+        sort_order: str = Query("DESC", enum=["ASC", "DESC"]),
+        search: Optional[str] = None,
+        status: Optional[str] = None,
+        team: Optional[str] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+
+        # UPDATED: Added target endpoints to match parameter payload configurations passed from UI graphics
+        priority: Optional[str] = None,
+        sla_status: Optional[str] = None,
+        sla_interval: Optional[str] = None,
+        category_tier_1: Optional[str] = None,
+        category_tier_2: Optional[str] = None,
+        category_tier_3: Optional[str] = None,
+        db: Session = Depends(get_db),
 ):
     skip = (page - 1) * limit
-    
+
     params = {
         "search": search,
         "status": status,
@@ -62,36 +91,47 @@ def get_tickets(
         "sort_by": sort_by,
         "sort_order": sort_order,
         "skip": skip,
-        "limit": limit
+        "limit": limit,
+        "priority": priority,
+        "sla_status": sla_status,
+        "sla_interval": sla_interval,
+        "category_tier_1": category_tier_1,
+        "category_tier_2": category_tier_2,
+        "category_tier_3": category_tier_3
     }
-    
-    result = exec_tickets_procedure(db, params)
-    raw_cursor = result.cursor  # get before SQLAlchemy closes it
 
-    col_names = [col[0] for col in raw_cursor.description] if raw_cursor.description else []
-    db_rows = raw_cursor.fetchall()
+    # Use context management to guarantee immediate closure of raw driver cursors
+    query = text("""
+            EXEC dbo.GetPaginatedTickets
+                @search = :search, @status = :status, @team = :team,
+                @start_date = :start_date, @end_date = :end_date,
+                @sort_by = :sort_by, @sort_order = :sort_order,
+                @skip = :skip, @limit = :limit, @priority = :priority,
+                @sla_status = :sla_status, @sla_interval = :sla_interval,
+                @category_tier_1 = :category_tier_1, @category_tier_2 = :category_tier_2,
+                @category_tier_3 = :category_tier_3
+        """)
+
     formatted_items = []
-
-    for row in db_rows:
-        r = dict(zip(col_names, row))
-        formatted_items.append({
-            "Ticket_Number": r.get("Ticket_ID"),
-            "Description": r.get("Description"),
-            "Status": r.get("Status"),
-            "Priority": r.get("Priority"),
-            "Company": r.get("Company"),
-            "Team": r.get("Team"),
-            "Project": r.get("Project"),
-            "Assigned_Person": r.get("Assigned_Person"),
-            "Service": r.get("Service"),
-            "Submit_Datetime": r.get("Submit_Datetime")
-        })
-
     total_items = 0
-    if raw_cursor.nextset():
-        count_row = raw_cursor.fetchone()
-        if count_row:
-            total_items = count_row[0]
+
+    # Native connection context handling prevents pooling lockups
+    with db.get_bind().connect() as conn:
+        result = conn.execute(query, params)
+        raw_cursor = result.cursor
+
+        if raw_cursor:
+            # Optimize lookups using an index map rather than manual zip loops
+            if raw_cursor.description:
+                col_map = {col[0]: idx for idx, col in enumerate(raw_cursor.description)}
+                db_rows = raw_cursor.fetchall()
+                formatted_items = [map_row_to_ticket(row, col_map) for row in db_rows]
+
+            # Switch to second select result cleanly
+            if raw_cursor.nextset():
+                count_row = raw_cursor.fetchone()
+                if count_row:
+                    total_items = count_row[0]
 
     total_pages = math.ceil(total_items / limit) if total_items > 0 else 1
 

@@ -476,97 +476,141 @@ CREATE OR ALTER PROCEDURE dbo.GetPaginatedTickets
     @sort_by VARCHAR(50) = 'SUBMIT_DATETIME',
     @sort_order VARCHAR(4) = 'DESC',
     @skip INT = 0,
-    @limit INT = 10
+    @limit INT = 10,
+    @priority VARCHAR(100) = NULL,
+    @sla_status VARCHAR(100) = NULL,
+    @sla_interval VARCHAR(100) = NULL,
+    @category_tier_1 VARCHAR(255) = NULL,
+    @category_tier_2 VARCHAR(255) = NULL,
+    @category_tier_3 VARCHAR(255) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    --Parse the date parameters into DATETIME format
-	DECLARE @StartDateParsed DATETIME = CASE
-        WHEN @start_date IS NOT NULL AND @start_date <> '' THEN CONVERT(DATETIME, @start_date + ' 00:00:00', 120)
-        ELSE NULL
-    END;
+    -- Local variables completely prevent Parameter Sniffing plan bugs
+    DECLARE @LocalSearch VARCHAR(100) = NULLIF(TRIM(@search), ''),
+            @LocalStatus VARCHAR(20) = NULLIF(TRIM(@status), ''),
+            @LocalTeam VARCHAR(100) = NULLIF(TRIM(@team), ''),
+            @LocalPriority VARCHAR(100) = NULLIF(TRIM(@priority), ''),
+            @LocalSlaStatus VARCHAR(100) = NULLIF(TRIM(@sla_status), ''),
+            @LocalSlaInterval VARCHAR(100) = NULLIF(TRIM(@sla_interval), ''),
+            @LocalCat1 VARCHAR(255) = NULLIF(TRIM(@category_tier_1), ''),
+            @LocalCat2 VARCHAR(255) = NULLIF(TRIM(@category_tier_2), ''),
+            @LocalCat3 VARCHAR(255) = NULLIF(TRIM(@category_tier_3), '');
 
-    DECLARE @EndDateParsed DATETIME = CASE
-        WHEN @end_date IS NOT NULL AND @end_date <> '' THEN CONVERT(DATETIME, @end_date + ' 23:59:59', 120)
-        ELSE NULL
-    END;
+    DECLARE @StartDateParsed DATETIME = CASE WHEN @start_date IS NOT NULL AND @start_date <> '' THEN CONVERT(DATETIME, @start_date + ' 00:00:00', 120) END;
+    DECLARE @EndDateParsed DATETIME = CASE WHEN @end_date IS NOT NULL AND @end_date <> '' THEN CONVERT(DATETIME, @end_date + ' 23:59:59', 120) END;
 
-    --First filter tickets based on the provided criteria
-    WITH FilteredTickets AS (
+    IF OBJECT_ID('tempdb..#FilteredTickets') IS NOT NULL 
+        DROP TABLE #FilteredTickets;
+
+    -- Pre-calculate static config elements once out of the loop
+    DECLARE @MaxSlaHours INT;
+    SELECT @MaxSlaHours = MAX(SLA_HOURS) FROM SLA_CONFIG;
+
+    -- 1. Grab matching primary keys efficiently using base table indexes
+    SELECT
+        t.TICKET_NUMBER
+    INTO #FilteredTickets
+    FROM INCIDENT_TICKETS t
+    LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
+    LEFT JOIN PRIORITIES p ON t.PRIORITY_ID = p.PRIORITY_ID
+    LEFT JOIN TEAMS tm ON t.TEAM_ID = tm.TEAM_ID
+    LEFT JOIN COMPANIES c ON t.COMPANY_ID = c.COMPANY_ID
+    LEFT JOIN SLA_CONFIG sc ON t.PRIORITY_ID = sc.PRIORITY_ID
+    WHERE (@LocalStatus IS NULL OR s.STATUS_NAME = @LocalStatus)
+      AND (@LocalTeam IS NULL OR tm.TEAM_NAME = @LocalTeam)
+      AND (@LocalPriority IS NULL OR p.PRIORITY_NAME = @LocalPriority)
+      AND (@StartDateParsed IS NULL OR t.SUBMIT_DATETIME >= @StartDateParsed)
+      AND (@EndDateParsed IS NULL OR t.SUBMIT_DATETIME <= @EndDateParsed)
+      AND (@LocalCat1 IS NULL OR t.CATEGORY_TIER_1 = @LocalCat1)
+      AND (@LocalCat2 IS NULL OR t.CATEGORY_TIER_2 = @LocalCat2)
+      AND (@LocalCat3 IS NULL OR t.CATEGORY_TIER_3 = @LocalCat3)
+      AND (@LocalSearch IS NULL OR (
+            t.TICKET_NUMBER LIKE '%' + @LocalSearch + '%'
+            OR s.STATUS_NAME LIKE '%' + @LocalSearch + '%'
+            OR p.PRIORITY_NAME LIKE '%' + @LocalSearch + '%'
+            OR c.COMPANY_NAME LIKE '%' + @LocalSearch + '%'
+            OR tm.TEAM_NAME LIKE '%' + @LocalSearch + '%'
+      ));
+
+    CREATE CLUSTERED INDEX IX_Filtered_ID ON #FilteredTickets(TICKET_NUMBER);
+
+    -- 2. Materialize only rows that matched index filtering
+    IF OBJECT_ID('tempdb..#ComputedTickets') IS NOT NULL 
+        DROP TABLE #ComputedTickets;
+
+    WITH SlaBounds AS (
         SELECT
-            t.TICKET_NUMBER as Ticket_ID,
-            t.DESCRIPTION as Description,
-            s.STATUS_NAME as Status,
-            p.PRIORITY_NAME as Priority,
-            c.COMPANY_NAME as Company,
-            tm.TEAM_NAME as Team,
-			t.PRIORITY_ID as Priority_ID,
-			t.STATUS_ID as Status_ID,
-            t.SUBMIT_DATETIME as Submit_Datetime
-        FROM INCIDENT_TICKETS t
-        LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
-        LEFT JOIN PRIORITIES p ON t.PRIORITY_ID = p.PRIORITY_ID
-        LEFT JOIN COMPANIES c ON t.COMPANY_ID = c.COMPANY_ID
-        LEFT JOIN TEAMS tm ON t.TEAM_ID = tm.TEAM_ID
-        WHERE (@status IS NULL OR s.STATUS_NAME = @status)
-        AND (@team IS NULL OR tm.TEAM_NAME = @team)
-        AND (@StartDateParsed IS NULL OR t.SUBMIT_DATETIME >= @StartDateParsed)
-        AND (@EndDateParsed IS NULL OR t.SUBMIT_DATETIME <= @EndDateParsed)
-        AND (@search IS NULL
-            OR t.TICKET_NUMBER LIKE '%' + @search + '%'
-            OR s.STATUS_NAME LIKE '%' + @search + '%'
-            OR p.PRIORITY_NAME LIKE '%' + @search + '%'
-            OR c.COMPANY_NAME LIKE '%' + @search + '%'
-            OR tm.TEAM_NAME LIKE '%' + @search + '%'
-            )
+            SLA_HOURS as upper_bound,
+            ISNULL(LAG(SLA_HOURS) OVER (ORDER BY SLA_HOURS ASC), 0) as lower_bound,
+            CASE WHEN LAG(SLA_HOURS) OVER (ORDER BY SLA_HOURS ASC) IS NULL THEN 'Sub ' + CAST(SLA_HOURS AS VARCHAR(5)) + 'h'
+                 ELSE CAST(LAG(SLA_HOURS) OVER (ORDER BY SLA_HOURS ASC) AS VARCHAR(5)) + 'h - ' + CAST(SLA_HOURS AS VARCHAR(5)) + 'h' END as interval_label
+        FROM SLA_CONFIG
+    ),
+    AllIntervalsMap AS (
+        SELECT lower_bound, upper_bound, interval_label FROM SlaBounds
+        UNION ALL
+        SELECT @MaxSlaHours, 999999, 'Peste ' + CAST(@MaxSlaHours AS VARCHAR(5)) + 'h'
     )
-
-    --Second, sort the filtered tickets based on the provided sorting criteria
-    SELECT * FROM FilteredTickets
-    ORDER BY
-        CASE WHEN @sort_order = 'ASC' THEN
-            CASE @sort_by
-                WHEN 'TICKET_NUMBER' THEN CAST(Ticket_ID AS VARCHAR(50))
-                WHEN 'STATUS'        THEN CAST(Status_ID AS VARCHAR(50))
-                WHEN 'PRIORITY'      THEN CAST(Priority_ID AS VARCHAR(50))
-                WHEN 'COMPANY' THEN Company
-                WHEN 'TEAM' THEN Team
-               -- ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
-            END
-        END ASC,
-
-        CASE WHEN @sort_order = 'DESC' THEN
-            CASE @sort_by
-                WHEN 'TICKET_NUMBER' THEN CAST(Ticket_ID AS VARCHAR(50))
-                WHEN 'STATUS'        THEN CAST(Status_ID AS VARCHAR(50))
-                WHEN 'PRIORITY'      THEN CAST(Priority_ID AS VARCHAR(50))
-                WHEN 'COMPANY' THEN Company
-                WHEN 'TEAM' THEN Team
-				--ELSE CONVERT(VARCHAR(50), Submit_Datetime, 120)
-			END
-        END DESC
-
-    OFFSET @skip ROWS
-    FETCH NEXT @limit ROWS ONLY;
-
-    --Finally, return the total count of tickets matching the filter criteria (with pagination applied)
-    SELECT COUNT(*) AS total_items FROM INCIDENT_TICKETS t
+    SELECT
+        t.TICKET_NUMBER as Ticket_ID,
+        t.DESCRIPTION as Description,
+        s.STATUS_NAME as Status,
+        p.PRIORITY_NAME as Priority,
+        c.COMPANY_NAME as Company,
+        tm.TEAM_NAME as Team,
+        t.PRIORITY_ID as Priority_ID,
+        t.STATUS_ID as Status_ID,
+        t.SUBMIT_DATETIME as Submit_Datetime,
+        t.PROJECT as Project,
+        t.ASSIGNED_PERSON as Assigned_Person,
+        t.SERVICE as Service,
+        t.CATEGORY_TIER_1,
+        t.CATEGORY_TIER_2,
+        t.CATEGORY_TIER_3,
+        CASE WHEN t.RESOLVED_DATETIME <= DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME) THEN 'In SLA'
+             WHEN t.RESOLVED_DATETIME > DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME)
+                  OR (t.RESOLVED_DATETIME IS NULL AND GETDATE() > DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME)) THEN 'Out of SLA'
+             ELSE 'In SLA' END AS Calc_SLA_Status,
+        CASE WHEN t.RESOLVED_DATETIME IS NULL THEN 'Nerezolvat'
+             ELSE ISNULL(m.interval_label, 'Necunoscut') END AS Calc_SLA_Interval
+    INTO #ComputedTickets
+    FROM #FilteredTickets ft
+    INNER JOIN INCIDENT_TICKETS t ON ft.TICKET_NUMBER = t.TICKET_NUMBER
     LEFT JOIN STATUSES s ON t.STATUS_ID = s.STATUS_ID
     LEFT JOIN PRIORITIES p ON t.PRIORITY_ID = p.PRIORITY_ID
     LEFT JOIN COMPANIES c ON t.COMPANY_ID = c.COMPANY_ID
     LEFT JOIN TEAMS tm ON t.TEAM_ID = tm.TEAM_ID
-    WHERE (@status IS NULL OR s.STATUS_NAME = @status)
-        AND (@team IS NULL OR tm.TEAM_NAME = @team)
-        AND (@StartDateParsed IS NULL OR t.SUBMIT_DATETIME >= @StartDateParsed)
-        AND (@EndDateParsed IS NULL OR t.SUBMIT_DATETIME <= @EndDateParsed)
-        AND (@search IS NULL
-            OR t.TICKET_NUMBER LIKE '%' + @search + '%'
-            OR s.STATUS_NAME LIKE '%' + @search + '%'
-            OR p.PRIORITY_NAME LIKE '%' + @search + '%'
-            OR c.COMPANY_NAME LIKE '%' + @search + '%'
-            OR tm.TEAM_NAME LIKE '%' + @search + '%'
-        );
+    LEFT JOIN SLA_CONFIG sc ON t.PRIORITY_ID = sc.PRIORITY_ID
+    LEFT JOIN AllIntervalsMap m ON (DATEDIFF(SECOND, t.SUBMIT_DATETIME, t.RESOLVED_DATETIME) / 3600.0) > m.lower_bound
+                               AND (DATEDIFF(SECOND, t.SUBMIT_DATETIME, t.RESOLVED_DATETIME) / 3600.0) <= m.upper_bound
+    WHERE (@LocalSlaStatus IS NULL OR 
+            (CASE WHEN t.RESOLVED_DATETIME <= DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME) THEN 'In SLA'
+                  WHEN t.RESOLVED_DATETIME > DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME) OR (t.RESOLVED_DATETIME IS NULL AND GETDATE() > DATEADD(HOUR, sc.SLA_HOURS, t.SUBMIT_DATETIME)) THEN 'Out of SLA'
+                  ELSE 'In SLA' END) = @LocalSlaStatus)
+      AND (@LocalSlaInterval IS NULL OR 
+            (CASE WHEN t.RESOLVED_DATETIME IS NULL THEN 'Nerezolvat' ELSE ISNULL(m.interval_label, 'Necunoscut') END) = @LocalSlaInterval);
+
+    -- 3. Return target items partition window block
+    IF @sort_by = 'STATUS' AND @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Status_ID ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'STATUS' AND @sort_order = 'DESC' SELECT * FROM #ComputedTickets ORDER BY Status_ID DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'PRIORITY' AND @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Priority_ID ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'PRIORITY' AND @sort_order = 'DESC' SELECT * FROM #ComputedTickets ORDER BY Priority_ID DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'COMPANY' AND @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Company ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'COMPANY' AND @sort_order = 'DESC' SELECT * FROM #ComputedTickets ORDER BY Company DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'TEAM' AND @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Team ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'TEAM' AND @sort_order = 'DESC' SELECT * FROM #ComputedTickets ORDER BY Team DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'TICKET_NUMBER' AND @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Ticket_ID ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_by = 'TICKET_NUMBER' AND @sort_order = 'DESC' SELECT * FROM #ComputedTickets ORDER BY Ticket_ID DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE IF @sort_order = 'ASC' SELECT * FROM #ComputedTickets ORDER BY Submit_Datetime ASC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+    ELSE SELECT * FROM #ComputedTickets ORDER BY Submit_Datetime DESC OFFSET @skip ROWS FETCH NEXT @limit ROWS ONLY;
+
+    -- 4. Count query
+    SELECT COUNT(*) AS total_items FROM #ComputedTickets;
+
+    DROP TABLE #FilteredTickets;
+    DROP TABLE #ComputedTickets;
 END;
 GO
 

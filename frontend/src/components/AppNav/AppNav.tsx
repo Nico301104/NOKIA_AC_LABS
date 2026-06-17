@@ -33,7 +33,7 @@ export default function AppNav() {
 
       <div className="app-nav-links">
         <NavLink to="/dashboard" className={navLinkClass}>DASHBOARD</NavLink>
-        <NavLink to="/kpi" className={navLinkClass}>KPI</NavLink>
+        {/* <NavLink to="/kpi" className={navLinkClass}>KPI</NavLink> */}
         <NavLink to="/chat" className={navLinkClass}>ASISTENT AI</NavLink>
       </div>
 

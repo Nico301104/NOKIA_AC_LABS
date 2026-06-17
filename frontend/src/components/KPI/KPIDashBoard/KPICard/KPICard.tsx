@@ -1,4 +1,4 @@
-import type { SimpleKPI } from '../../../types/KPI';
+import type { SimpleKPI } from '../../../../types/KPI';
 import './KPICard.css';
 
 type KPICardProps = {
