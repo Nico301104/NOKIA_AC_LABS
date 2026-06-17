@@ -1405,10 +1405,14 @@ CREATE PROCEDURE dbo.createConversation
     @UserID INT = 0,
     @TicketID nvarchar(MAX) = NULL
 AS
+BEGIN
     SET NOCOUNT ON;
+    
     INSERT INTO Conversations(UserID, Ticket)
     VALUES (@UserID, @TicketID);
-    SELECT ConversationID FROM Conversations WHERE UserID = @UserID AND Ticket = @TicketID;
+    
+    SELECT SCOPE_IDENTITY() AS ConversationID;
+END
 GO
 
 

@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from routes import router
+
 
 app = FastAPI(title="Ticketing App API")
+
+router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
