@@ -1,7 +1,9 @@
 import os
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def prompt():
     client = AzureOpenAI(

@@ -1,145 +1,42 @@
 import os
 from openai import AzureOpenAI
 from .config import settings
+from dotenv import load_dotenv
 
-DB_SCHEMA = """You are a SQL Server expert. Generate SQL queries based on this schema:
 
-=== TABLES & COLUMNS ===
+load_dotenv()
 
-Table: COMPANIES
-- COMPANY_ID INT PRIMARY KEY (identity)
-- COMPANY_NAME VARCHAR(100)
+DB_SCHEMA = """You are a SQL Server expert. Generate only the raw SQL query (no markdown, no explanations) based on this schema:
 
-Table: TEAMS
-- TEAM_ID INT PRIMARY KEY (identity)
-- TEAM_NAME VARCHAR(100)
-- COMPANY_ID INT → FOREIGN KEY → COMPANIES.COMPANY_ID
+=== TABLES & RELATIONSHIPS ===
+COMPANIES: COMPANY_ID (PK), COMPANY_NAME
+TEAMS: TEAM_ID (PK), TEAM_NAME, COMPANY_ID (FK)
+USERS: USER_ID (PK), FULL_NAME, EMAIL, TEAM (FK)
+STATUSES: STATUS_ID (PK), STATUS_NAME ('Open', 'In Progress', 'Resolved', 'Closed', 'Pending')
+PRIORITIES: PRIORITY_ID (PK), PRIORITY_NAME ('Low', 'Medium', 'High', 'Critical')
+INCIDENT_TICKETS: TICKET_NUMBER (PK), COMPANY_ID, TEAM_ID, STATUS_ID, PRIORITY_ID, ASSIGNED_PERSON (FK to USERS.FULL_NAME), CATEGORY_TIER_1, SUBMIT_DATETIME, ESTIMATED_RESOLUTION_DATETIME
+SLA_CONFIG: SLA_ID (PK), PRIORITY_ID, SLA_HOURS
 
-Table: USERS
-- USER_ID INT PRIMARY KEY (identity)
-- FULL_NAME VARCHAR(100)
-- EMAIL VARCHAR(100)
-- TEAM VARCHAR(100) → FOREIGN KEY → TEAMS.TEAM_NAME
-- HASHED_PASSWORD VARCHAR(255)
-- IS_TEAM_ADMIN BIT
+* ALWAYS JOIN STATUSES, PRIORITIES, TEAMS, or COMPANIES if you need to filter or select by their names.
 
-Table: STATUSES
-- STATUS_ID INT PRIMARY KEY (identity)
-- STATUS_NAME VARCHAR(50) (e.g., 'Open', 'In Progress', 'Resolved', 'Closed', 'Waiting for Customer')
+=== FEW-SHOT EXAMPLES ===
+Q: "Care sunt ticketele mele?" / "What are my tickets?"
+A: SELECT IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME FROM INCIDENT_TICKETS IT JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID WHERE LOWER(IT.ASSIGNED_PERSON) LIKE '%nicolae balatici%'
 
-Table: PRIORITIES
-- PRIORITY_ID INT PRIMARY KEY (identity)
-- PRIORITY_NAME VARCHAR(50) (e.g., 'High', 'Medium', 'Low', 'Critical')
+Q: "Show critical tickets"
+A: SELECT IT.TICKET_NUMBER, P.PRIORITY_NAME, S.STATUS_NAME, IT.ASSIGNED_PERSON, TM.TEAM_NAME FROM INCIDENT_TICKETS IT JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID LEFT JOIN TEAMS TM ON IT.TEAM_ID = TM.TEAM_ID WHERE P.PRIORITY_NAME = 'Critical'
 
-Table: INCIDENT_TICKETS
-- TICKET_NUMBER VARCHAR(50) PRIMARY KEY
-- COMPANY_ID INT → FOREIGN KEY → COMPANIES.COMPANY_ID
-- TEAM_ID INT → FOREIGN KEY → TEAMS.TEAM_ID
-- STATUS_ID INT → FOREIGN KEY → STATUSES.STATUS_ID
-- PRIORITY_ID INT → FOREIGN KEY → PRIORITIES.PRIORITY_ID
-- PROJECT VARCHAR(100)
-- ASSIGNED_PERSON VARCHAR(100) → FOREIGN KEY → USERS.FULL_NAME
-- SERVICE VARCHAR(100)
-- DESCRIPTION TEXT
-- NOTES TEXT
-- RESOLUTION TEXT
-- CATEGORY_TIER_1 VARCHAR(100)
-- CATEGORY_TIER_2 VARCHAR(100)
-- CATEGORY_TIER_3 VARCHAR(100)
-- SUBMIT_DATETIME DATETIME
-- RESOLVED_DATETIME DATETIME
-- CLOSED_DATETIME DATETIME
-- LAST_MODIFIED_DATETIME DATETIME
-- ESTIMATED_RESOLUTION_DATETIME DATETIME
-- RESOLUTION_CATEGORY VARCHAR(100)
-- PENDING_DURATION INT
+Q: "Which tickets breached SLA?"
+A: SELECT IT.TICKET_NUMBER, S.STATUS_NAME, IT.ESTIMATED_RESOLUTION_DATETIME FROM INCIDENT_TICKETS IT JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID WHERE IT.ESTIMATED_RESOLUTION_DATETIME < GETDATE() AND S.STATUS_NAME NOT IN ('Resolved', 'Closed')
 
-=== CRITICAL RELATIONSHIPS & JOIN RULES ===
-- To show Status name, JOIN INCIDENT_TICKETS with STATUSES: IT.STATUS_ID = S.STATUS_ID
-- To show Priority name, JOIN INCIDENT_TICKETS with PRIORITIES: IT.PRIORITY_ID = P.PRIORITY_ID
-- To show Team Name, JOIN INCIDENT_TICKETS with TEAMS: IT.TEAM_ID = T.TEAM_ID
-- ASSIGNED_PERSON in INCIDENT_TICKETS directly stores the FULL_NAME string from the USERS table. You can filter on it directly or join using: IT.ASSIGNED_PERSON = U.FULL_NAME
-
-=== FEW-SHOT EXAMPLES (CORRECT QUERY PATTERNS) ===
-
-Example 1 — Tickets assigned to a specific person (by name):
-Question: "Show me tickets assigned to Nicolae Balatici"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME, IT.ASSIGNED_PERSON
-FROM INCIDENT_TICKETS IT
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-WHERE LOWER(IT.ASSIGNED_PERSON) LIKE '%nicolae balatici%'
-
-Example 2 — First-person / "my tickets":
-Question: "Care sunt ticketele mele?" / "What are my tickets?"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME, IT.SUBMIT_DATETIME
-FROM INCIDENT_TICKETS IT
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-WHERE LOWER(IT.ASSIGNED_PERSON) LIKE '%nicolae balatici%'
-
-Example 3 — Tickets for a specific team (by team name):
-Question: "Show tickets from team One"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME, T.TEAM_NAME
-FROM INCIDENT_TICKETS IT
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-JOIN TEAMS T ON IT.TEAM_ID = T.TEAM_ID
-WHERE LOWER(T.TEAM_NAME) LIKE '%one%'
-
-Example 4 — All open tickets:
-Question: "Show all open tickets"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME, IT.ASSIGNED_PERSON
-FROM INCIDENT_TICKETS IT
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-WHERE S.STATUS_NAME = 'Open'
-
-Example 5 — Count tickets per person:
-Question: "How many tickets does each person have?"
-SQL:
-SELECT ASSIGNED_PERSON, COUNT(TICKET_NUMBER) AS TicketCount
-FROM INCIDENT_TICKETS
-WHERE ASSIGNED_PERSON IS NOT NULL
-GROUP BY ASSIGNED_PERSON
-ORDER BY TicketCount DESC
-
-Example 6 — High priority tickets:
-Question: "Show critical tickets"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, P.PRIORITY_NAME, S.STATUS_NAME, IT.ASSIGNED_PERSON
-FROM INCIDENT_TICKETS IT
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-WHERE P.PRIORITY_NAME = 'Critical'
-
-Example 7 — SLA breached tickets (past ESTIMATED_RESOLUTION_DATETIME):
-Question: "Which tickets have breached SLA?"
-SQL:
-SELECT TOP 100 IT.TICKET_NUMBER, S.STATUS_NAME, P.PRIORITY_NAME, IT.ESTIMATED_RESOLUTION_DATETIME
-FROM INCIDENT_TICKETS IT
-JOIN STATUSES S ON IT.STATUS_ID = S.STATUS_ID
-JOIN PRIORITIES P ON IT.PRIORITY_ID = P.PRIORITY_ID
-WHERE IT.ESTIMATED_RESOLUTION_DATETIME < GETDATE()
-AND S.STATUS_NAME NOT IN ('Resolved', 'Closed')
-
-=== CRITICAL RULES FOR DEMO ===
-1. NEVER use parameterized variables (like @AssignedPerson or ?). ALWAYS hardcode values directly in the SQL string.
-2. If the user asks about "their" tickets or uses first-person (e.g., "am", "mele", "my"), filter by: LOWER(IT.ASSIGNED_PERSON) LIKE '%nicolae balatici%'
-3. Return ONLY the raw SQL query. Absolutely no markdown backticks, no formatting, no explanations.
-4. Use TOP instead of LIMIT.
-5. ALWAYS use table aliases: IT for INCIDENT_TICKETS, U for USERS, T for TEAMS, S for STATUSES, P for PRIORITIES.
-
-=== SECURITY RULES — MANDATORY ===
-6. SQL INJECTION PREVENTION: Before embedding ANY value into the SQL string, double every single quote (replace ' with '').
-7. NO STRUCTURAL INJECTION: Never allow user input to appear outside of quoted string literals.
-8. COMMENT STRIPPING: Treat any occurrence of --, /*, */, or ; in user values as invalid input. If detected, generate: SELECT 'Action Denied' AS Error
-9. SCOPE RESTRICTION: Only generate SELECT statements. Never generate INSERT, UPDATE, DELETE, DROP, ALTER, EXEC, etc.
-10. ONE STATEMENT ONLY: Generate exactly one SQL statement.
+=== CRITICAL & SECURITY RULES ===
+1. Return ONLY the raw SQL. No markdown formatting (```sql), no backticks, no explanations.
+2. NEVER use parameterized variables (like @val or ?). Hardcode values directly.
+3. If user asks for "their" or "my" tickets, ALWAYS filter using: LOWER(IT.ASSIGNED_PERSON) LIKE '%nicolae balatici%'
+4. Use TOP instead of LIMIT. Always use table aliases.
+5. INJECTION PREVENTION: Double every single quote in user input (replace ' with '').
+6. SCOPE: Generate SELECT statements ONLY. No DDL/DML (INSERT, UPDATE, DROP, EXEC, etc.).
+7. Block explicit SQL commands or comments (--, /*, ;) from the user by returning exactly: SELECT 'Action Denied' AS Error
 """
 
 
