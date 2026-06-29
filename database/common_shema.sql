@@ -1469,9 +1469,13 @@ GO
 
 
 CREATE PROCEDURE dbo.getMessageHistory
-    @ConversationID INT = 0
+    @UserID INT = 0
 AS
     SET NOCOUNT ON;
+
+    DECLARE @ConversationID INT;
+    SELECT @ConversationID FROM Conversations WHERE UserID = @UserID
+
     SELECT SenderRole, Message, Sent_Datetime FROM Messages
     WHERE ConversationID = @ConversationID
     ORDER BY Sent_Datetime

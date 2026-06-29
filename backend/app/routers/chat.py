@@ -2,9 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel
+
+from ..auth import get_current_user
 from ..database import get_db
 
 from .. import ai_service
+from ..models import User
 
 router = APIRouter(tags=["chat"])
 
@@ -16,7 +19,8 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-def chat(request: ChatRequest, db: Session = Depends(get_db)):
+def chat(request: ChatRequest, db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)):
     try:
         # Initialize our dynamic variable with the request default
         active_conv_id = request.conversation_id
@@ -42,11 +46,13 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)):
 
         user_message = request.message
 
-        sql_query = ai_service.get_sql_from_question(user_message)
+        sql_query = ai_service.get_sql_from_question(user_message, current_user.FullName)
 
         sql_upper = sql_query.strip().upper()
         if not (sql_upper.startswith("SELECT") or sql_upper.startswith("EXEC")):
             raise HTTPException(status_code=400, detail="Doar query-uri SELECT sunt permise!")
+
+        print(sql_upper)
 
         result = db.execute(text(sql_query)).fetchall()
         sql_result = str(result)
@@ -82,10 +88,11 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/history/{conversation_id}")
-def get_history(conversation_id: int, db: Session = Depends(get_db)):
+def get_history(conversation_id: int, db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)):
     try:
-        result = db.execute(text("EXEC getMessageHistory :conv_id"), {
-            "conv_id": conversation_id
+        result = db.execute(text("EXEC getMessageHistory :user_id"), {
+            "user_id": current_user.User_id
         }).fetchall()
 
         return [{"role": row[0].lower(), "text": row[1], "timestamp": row[2].isoformat() if row[2] else None} for row in result]

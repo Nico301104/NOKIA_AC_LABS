@@ -1,6 +1,7 @@
+import api from "../../services/api.ts";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import type { Message } from '../../types/Message';
 import { formatTime, formatDate, isSameDay, getGreeting } from '../../components/AiChat/utils.ts';
 import { ChatInput } from '../../components/AiChat/ChatInput/ChatInput';
@@ -25,7 +26,7 @@ export function Chat() {
 
     const loadHistory = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/history/1`);
+        const response = await api.get(`${API_BASE_URL}/history/1`);
         const history = response.data.map((msg: { role: string, text: string, timestamp: string }) => ({
           role: msg.role === 'user' ? 'user' : 'ai',
           text: msg.text,
@@ -66,7 +67,7 @@ export function Chat() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/chat`, {
+      const response = await api.post(`${API_BASE_URL}/chat`, {
         message: text,
         conversation_id: 1,
         user_id: 1,

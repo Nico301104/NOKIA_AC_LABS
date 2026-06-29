@@ -40,7 +40,7 @@ A: SELECT IT.TICKET_NUMBER, S.STATUS_NAME, IT.ESTIMATED_RESOLUTION_DATETIME FROM
 """
 
 
-def get_sql_from_question(question: str) -> str:
+def get_sql_from_question(question: str, user_name: str) -> str:
     # Changed from os.environ to settings
     client = AzureOpenAI(
         api_key=settings.API_KEY,
@@ -51,7 +51,7 @@ def get_sql_from_question(question: str) -> str:
     response = client.chat.completions.create(
         model=settings.MODEL,
         messages=[
-            {"role": "system", "content": DB_SCHEMA},
+            {"role": "system", "content": DB_SCHEMA.replace("nicolae balatici", user_name)},
             {"role": "user", "content": question},
         ],
     )
