@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '../../../context/LanguageContext';
 import './ChatInput.css';
 
 const SUGGESTIONS = [
@@ -18,6 +19,8 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   const [inputText, setInputText] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
+  const suggestions: string[] = t('chat.suggestionsList');
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -49,23 +52,23 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' ? handleSend() : null}
-        placeholder="Întreabă despre tichete..."
+        placeholder={t('chat.placeholder')}
       />
 
       <div ref={suggestionsRef} className="suggestions-wrapper">
         <button
           className={`suggestions-btn ${showSuggestions ? 'active' : ''}`}
           onClick={() => setShowSuggestions(!showSuggestions)}
-          title="Sugestii"
+          title={t('chat.suggestionsTitle')}
         >
           ✦
         </button>
 
         {showSuggestions && (
           <div className="suggestions-popover">
-            {SUGGESTIONS.map((suggestion) => (
+            {suggestions.map((suggestion, index) => (
               <button
-                key={suggestion}
+                key={index}
                 className="suggestion-item"
                 onClick={() => handleSuggestionClick(suggestion)}
               >
@@ -77,7 +80,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
       </div>
 
       <button className="chat-send-btn" onClick={handleSend} disabled={isLoading}>
-        TRIMITE
+        {t('chat.send')}
       </button>
     </div>
   );

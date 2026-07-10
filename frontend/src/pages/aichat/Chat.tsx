@@ -7,6 +7,7 @@ import { ChatInput } from '../../components/AiChat/ChatInput/ChatInput';
 import { ChatGuideModal } from '../../components/AiChat/ChatGuideModal/ChatGuideModal';
 import './Chat.css';
 import Footer from '../../components/footer/Footer.tsx';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -14,6 +15,7 @@ export function Chat() {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const chatWindowRef = useRef<HTMLDivElement>(null);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const welcomeMessage: Message = {
@@ -106,7 +108,7 @@ export function Chat() {
           alt="Nokia Logo"
           style={{ height: '30px', width: 'auto' }}
         />
-        <h2>Asistent Ticketing Nokia</h2>
+        <h2>{t('chatPage.headerTitle')}</h2>
         <button className="guide-btn" onClick={() => setShowGuide(true)}>?</button>
       </header>
 
@@ -120,8 +122,7 @@ export function Chat() {
               <div key={index} className="chat-message">
                 {showDateSeparator && (
                   <div className="date-separator">
-                    <span className="date-text">{formatDate(msg.timestamp)}</span>
-                  </div>
+                    <span className="date-text">{formatDate(msg.timestamp, language)}</span></div>
                 )}
 
                 <div className={`msg-wrapper ${msg.role === 'user' ? 'user' : 'ai'}`}>
@@ -129,7 +130,7 @@ export function Chat() {
                     {msg.text}
                   </div>
                   {!msg.isWelcome && (
-                    <span className="msg-time">{formatTime(msg.timestamp)}</span>
+                    <span className="msg-time">{formatTime(msg.timestamp, language)}</span>
                   )}
                 </div>
               </div>
@@ -146,7 +147,7 @@ export function Chat() {
       {isLoading && (
         <div className="loading-indicator">
           <div className="spinner" />
-          SE PROCESEAZĂ...
+          {t('chatPage.processing')}
         </div>
       )}
 

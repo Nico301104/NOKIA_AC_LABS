@@ -1,0 +1,242 @@
+{
+  "nav": {
+    "dashboard": "DASHBOARD",
+    "ai_assistant": "AI ASSISTANT",
+    "logout": "LOGOUT",
+    "login": "LOGIN"
+  },
+  "footer": {
+    "slogan": "Data visualization with passion.",
+    "quickLinks": "Quick Links",
+    "projects": "Our Projects",
+    "about": "About Nokia",
+    "privacy": "Privacy Policy",
+    "contact": "Contact",
+    "rights": "Nokia | All Rights Reserved"
+  },
+  "chatGuide": {
+    "title": "Usage Guide",
+    "important": "Important:",
+    "importantText": "The bot only responds to questions about your project. Questions about other projects or the entire database will not return relevant results.",
+    "canDo": "WHAT THE BOT CAN DO",
+    "canDoItems": [
+      "Number of tickets by status, priority, or team",
+      "Tickets assigned to a person in your project",
+      "Resolution and SLA statistics",
+      "Last opened or critical tickets in your project"
+    ],
+    "examples": "GOOD QUESTION EXAMPLES",
+    "exampleItems": [
+      "How many tickets are Critical priority?",
+      "How many tickets are not resolved?",
+      "What are the last 5 opened tickets?",
+      "How many tickets did each team resolve?",
+      "What is the average resolution time?"
+    ],
+    "limits": "TECHNICAL LIMITS",
+    "limitItems": [
+      "Cannot modify or delete tickets",
+      "Does not answer non-ticket related questions",
+      "Answers depend on database data",
+      "Questions must be in natural language, not SQL",
+      "Cannot access data outside your project"
+    ],
+    "tips": "TIPS",
+    "tipItems": [
+      "Use the ✦ button for quick predefined questions",
+      "Be specific — 'unassigned Critical tickets' is better than 'tickets'",
+      "You can ask about time periods: 'tickets opened this week'"
+    ]
+  },
+  "chat": {
+    "placeholder": "Ask about tickets...",
+    "suggestionsTitle": "Suggestions",
+    "send": "SEND",
+    "suggestionsList": [
+      "How many tickets are Critical?",
+      "Show tickets assigned to me",
+      "What is the average resolution time?",
+      "List all open tickets"
+    ]
+  },
+  "chatPage": {
+    "headerTitle": "Nokia Ticketing Assistant",
+    "processing": "PROCESSING..."
+  },
+  "loginPage": {
+    "secureAccess": "SECURE ACCESS",
+    "welcome": "Welcome",
+    "subtitle": "Log in to access the ticket filtering system.",
+    "usernameLabel": "USERNAME",
+    "passwordLabel": "PASSWORD",
+    "actionLogin": "Log In",
+    "actionLoading": "Connecting..."
+  },
+  "dashboard": {
+    "stats": {
+      "total": "TOTAL TICKETS",
+      "open": "OPEN",
+      "inProgress": "IN PROGRESS",
+      "completed": "COMPLETED",
+      "critical": "CRITICAL"
+    }, 
+     "kpicollapsible": {
+      "hideGraphics": "HIDE KPI GRAPHICS",
+      "showGraphics": "SHOW KPI GRAPHICS"
+    },
+    "kpifilter": {
+      "status": "Status",
+      "allStatuses": "All Statuses",
+      "noStatuses": "No statuses available",
+      "priority": "Priority",
+      "allPriorities": "All Priorities",
+      "noPriorities": "No priorities available",
+      "team": "Team",
+      "allTeams": "All Teams",
+      "noTeams": "No teams available",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "clear": "Clear Filters"
+    },
+    "kpidashboard": {
+      "tabs": {
+        "all": "All Metrics",
+        "overview": "Overview",
+        "sla": "SLA Compliance",
+        "categories": "Categories",
+        "teams": "Teams"
+      },
+      "sections": {
+        "core": "Core Performance Metrics",
+        "sla": "SLA Compliance & Targets",
+        "categorization": "Categorization Breakdown",
+        "teamPerformance": "Operational Team Performance"
+      },
+      "metrics": {
+        "totalTickets": "Total Tickets",
+        "avgResTime": "Avg Resolution Time",
+        "unresolved": "Unresolved Tickets",
+        "resolved": "Resolved Tickets",
+        "overdue": "Overdue Tickets",
+        "slaCompliance": "SLA Compliance",
+        "inSla": "Tickets in SLA",
+        "breached": "Tickets Breached"
+      },
+      "charts": {
+        "ticketsByStatus": "Tickets by Status",
+        "ticketsByPriority": "Tickets by Priority",
+        "slaStatus": "SLA Status Breakdown",
+        "resTimeDist": "Resolution Time Distribution",
+        "catTier1": "Category Tier 1",
+        "catTier2": "Category Tier 2 (Top 10)",
+        "catTier3": "Category Tier 3 (Top 10)",
+        "ticketsPerTeam": "Tickets per Team",
+        "avgResTimePerTeam": "Avg Resolution Time per Team"
+      }
+    },
+    "filterbar": {
+      "labels": {
+        "search": "SEARCH",
+        "status": "STATUS",
+        "team": "TEAM",
+        "startDate": "START DATE",
+        "endDate": "END DATE"
+      },
+      "placeholders": {
+        "search": "Ticket No., description..."
+      },
+      "options": {
+        "all": "All",
+        "perPage": "page"
+      },
+      "buttons": {
+        "reset": "RESET FILTERS",
+        "exportCsv": "EXPORT CSV",
+        "exportXlsx": "EXPORT XLSX",
+        "exporting": "EXPORTING..."
+      },
+      "sort": {
+        "date": "Sort by: Date",
+        "priority": "Sort by: Priority",
+        "status": "Sort by: Status",
+        "company": "Sort by: Company",
+        "team": "Sort by: Team"
+      },
+      "tooltips": {
+        "asc": "Ascending",
+        "desc": "Descending"
+      }
+    },
+    "table": {
+      "title": "TICKET LIST",
+      "chartFilter": "Chart Filter",
+      "clearChartFilter": "Clear visual filter",
+      "page": "page",
+      "of": "of",
+      "paginationInfo": "{total} total · page {page} of {pages}",
+      "pageIndicator": "page {page} of {totalPages}",
+      "loading": "LOADING...",
+      "rowTooltip": "Click for details",
+      "headers": {
+        "ticketNo": "TICKET #",
+        "status": "STATUS",
+        "priority": "PRIORITY",
+        "company": "COMPANY",
+        "project": "PROJECT",
+        "team": "TEAM",
+        "person": "ASSIGNED TO",
+        "service": "SERVICE",
+        "description": "DESCRIPTION",
+        "date": "DATE"
+      }
+    },
+    "ticketModal": {
+      "header": {
+        "details": "TICKET DETAILS"
+      },
+      "fields": {
+        "company": "COMPANY",
+        "team": "TEAM",
+        "project": "PROJECT",
+        "service": "SERVICE",
+        "assigned": "ASSIGNED TO",
+        "date": "SUBMITTED ON"
+      },
+      "description": {
+        "title": "DESCRIPTION",
+        "empty": "No description available."
+      },
+      "actions": {
+        "hide": "▲ HIDE ACTIONS",
+        "show": "▼ MANAGE TICKET",
+        "status": {
+          "title": "Change status",
+          "button": "CHANGE STATUS",
+          "applying": "APPLYING...",
+          "successPrefix": "Status changed to"
+        },
+        "self": {
+          "title": "Take ticket",
+          "disabledTooltip": "Only available for unassigned 'Open' tickets.",
+          "buttonPrefix": "TAKE",
+          "me": "me",
+          "applying": "TAKING...",
+          "success": "Ticket taken successfully.",
+          "restriction": "Only unassigned 'Open' tickets can be taken."
+        },
+        "admin": {
+          "title": "Assign (Team Admin)",
+          "badge": "ADMIN",
+          "selectPlaceholder": "Select a team member...",
+          "button": "ASSIGN MEMBER",
+          "applying": "ASSIGNING...",
+          "successPrefix": "Ticket assigned to",
+          "noRolePrefix": "You are not a Team Admin",
+          "noRoleTeam": " on team",
+          "noRoleSuffix": ". Only admins can assign tickets to team members."
+        }
+      }
+    }
+  }
+
+}

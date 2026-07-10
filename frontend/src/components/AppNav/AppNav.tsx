@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useLanguage } from '../../context/LanguageContext'
 import './AppNav.css'
 
 // Bara de navigatie unica, folosita pe toate paginile (Home / KPI / Tichete / Chat).
@@ -10,6 +11,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AppNav() {
   const { user, isAuthenticated, logout } = useAuth()
+  const { language, toggleLanguage, t } = useLanguage()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -32,12 +34,20 @@ export default function AppNav() {
       </button>
 
       <div className="app-nav-links">
-        <NavLink to="/dashboard" className={navLinkClass}>DASHBOARD</NavLink>
-        {/* <NavLink to="/kpi" className={navLinkClass}>KPI</NavLink> */}
-        <NavLink to="/chat" className={navLinkClass}>ASISTENT AI</NavLink>
+        <NavLink to="/dashboard" className={navLinkClass}>{t('nav.dashboard')}</NavLink>
+        <NavLink to="/chat" className={navLinkClass}>{t('nav.ai_assistant')}</NavLink>
       </div>
 
       <div className="app-nav-right">
+        {/* Language Toggle Button */}
+        <button 
+          className="app-nav-btn" 
+          onClick={toggleLanguage} 
+          style={{ marginRight: '1rem', fontWeight: 'bold' }}
+        >
+          {language === 'en' ? 'EN' : 'RO'}
+        </button>
+
         {isAuthenticated ? (
           <>
             <div className="app-nav-user">
@@ -49,12 +59,12 @@ export default function AppNav() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              LOGOUT
+              {t('nav.logout')}
             </button>
           </>
         ) : (
           <NavLink to="/login" className="app-nav-btn app-nav-btn--login">
-            LOGIN
+            {t('nav.login')}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
               <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

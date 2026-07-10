@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 import './Login.css'
 import Footer from '../components/footer/Footer'
 
@@ -11,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const { t, language, toggleLanguage } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +34,13 @@ export default function Login() {
     <>
 
     <div className="login-page">
+      <button 
+          className="login-lang-toggle" 
+          onClick={toggleLanguage}
+        >
+          {language === 'en' ? 'EN' : 'RO'}
+        </button>
+
       <div className="orb orb-violet" />
       <div className="orb orb-green" />
 
@@ -54,19 +63,19 @@ export default function Login() {
           <div className="card-inner">
             <div className="card-header">
               <span className="status-dot" />
-              <span className="card-eyebrow">SECURE ACCESS</span>
+              <span className="card-eyebrow">{t('loginPage.secureAccess')}</span>
             </div>
 
             <h1 className="card-title">
-              Bun venit<span className="accent">.</span>
+              {t('loginPage.welcome')}<span className="accent">.</span>
             </h1>
             <p className="card-subtitle">
-              Autentifică-te pentru a accesa sistemul de filtrare a tichetelor.
+              {t('loginPage.subtitle')}
             </p>
 
             <form onSubmit={handleSubmit} className="login-form">
               <div className="field">
-                <label htmlFor="username">USERNAME</label>
+               <label htmlFor="username">{t('loginPage.usernameLabel')}</label>
                 <div className="input-wrap">
                   <input
                     id="username"
@@ -80,7 +89,7 @@ export default function Login() {
               </div>
 
               <div className="field">
-                <label htmlFor="password">PAROLĂ</label>
+                <label htmlFor="password">{t('loginPage.passwordLabel')}</label>
                 <div className="input-wrap">
                   <input
                     id="password"
@@ -98,8 +107,8 @@ export default function Login() {
 
               <button type="submit" className="btn-primary" disabled={loading}>
                 <span className="btn-label">
-                  {loading ? 'Se conectează…' : 'Autentificare'}
-                </span>
+                    {loading ? t('loginPage.actionLoading') : t('loginPage.actionLogin')}
+                  </span>
                 <svg className="btn-arrow" viewBox="0 0 20 20" fill="none">
                   <path d="M4 10 L16 10 M11 5 L16 10 L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>

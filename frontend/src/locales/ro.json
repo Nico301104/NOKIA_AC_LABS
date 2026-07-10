@@ -1,0 +1,242 @@
+{
+  "nav": {
+    "dashboard": "DASHBOARD",
+    "ai_assistant": "ASISTENT AI",
+    "logout": "DECONECTARE",
+    "login": "AUTENTIFICARE"
+  },
+  "footer": {
+    "slogan": "Vizualizarea datelor cu pasiune.",
+    "quickLinks": "Linkuri Rapide",
+    "projects": "Proiectele Noastre",
+    "about": "Despre Nokia",
+    "privacy": "Politica de Confidențialitate",
+    "contact": "Contact",
+    "rights": "Nokia | Toate drepturile rezervate"
+  },
+  "chatGuide": {
+    "title": "Ghid de utilizare",
+    "important": "Important: ",
+    "importantText": "Botul răspunde doar la întrebări despre proiectul tău. Întrebările despre alte proiecte sau despre întreaga bază de date nu vor returna rezultate relevante.",
+    "canDo": "CE POATE FACE BOTUL",
+    "canDoItems": [
+      "Numărul de tichete după status, prioritate sau echipă",
+      "Tichete asignate unei persoane din proiectul tău",
+      "Statistici despre rezolvare și SLA",
+      "Ultimele tichete deschise sau critice din proiectul tău"
+    ],
+    "examples": "EXEMPLE DE ÎNTREBĂRI BUNE",
+    "exampleItems": [
+      "Cate tichete sunt cu prioritate Critical?",
+      "Cate tichete nu sunt rezolvate?",
+      "Care sunt ultimele 5 tichete deschise?",
+      "Cate tichete a rezolvat fiecare echipa?",
+      "Care este timpul mediu de rezolvare?"
+    ],
+    "limits": "LIMITE TEHNICE",
+    "limitItems": [
+      "Nu poate modifica sau șterge tichete",
+      "Nu răspunde la întrebări care nu sunt despre tichete",
+      "Răspunsurile depind de datele din baza de date",
+      "Întrebările trebuie formulate în limbaj natural, nu SQL",
+      "Nu poate accesa date din afara proiectului tău"
+    ],
+    "tips": "SFATURI",
+    "tipItems": [
+      "Folosește butonul ✦ pentru întrebări rapide predefinite",
+      "Fii specific — 'tichete Critical neasignate' e mai bun decât 'tichete'",
+      "Poți întreba despre perioade de timp: 'tichete deschise săptămâna asta'"
+    ]
+  },
+  "chat": {
+    "placeholder": "Întreabă despre tichete...",
+    "suggestionsTitle": "Sugestii",
+    "send": "TRIMITE",
+    "suggestionsList": [
+      "Cate tichete sunt cu prioritate Critical?",
+      "Arată-mi tichetele asignate mie",
+      "Care este timpul mediu de rezolvare?",
+      "Listează toate tichetele deschise"
+    ]
+  },
+  "chatPage": {
+    "headerTitle": "Asistent Ticketing Nokia",
+    "processing": "SE PROCESEAZĂ..."
+  },
+  "loginPage": {
+    "secureAccess": "ACCES SECURIZAT",
+    "welcome": "Bun venit",
+    "subtitle": "Autentifică-te pentru a accesa sistemul de filtrare a tichetelor.",
+    "usernameLabel": "UTILIZATOR",
+    "passwordLabel": "PAROLĂ",
+    "actionLogin": "Autentificare",
+    "actionLoading": "Se conectează..."
+  },
+  "dashboard": {
+    "stats": {
+      "total": "TOTAL TICHETE",
+      "open": "DESCHISE",
+      "inProgress": "ÎN LUCRU",
+      "completed": "FINALIZATE",
+      "critical": "CRITICE"
+    },
+    "kpicollapsible": {
+      "hideGraphics": "ASCUNDE GRAFICE KPI",
+      "showGraphics": "AFIȘEAZĂ GRAFICE KPI"
+    },
+    "kpifilter": {
+      "status": "Status",
+      "allStatuses": "Toate statusurile",
+      "noStatuses": "Niciun status disponibil",
+      "priority": "Prioritate",
+      "allPriorities": "Toate prioritățile",
+      "noPriorities": "Nicio prioritate disponibilă",
+      "team": "Echipă",
+      "allTeams": "Toate echipele",
+      "noTeams": "Nicio echipă disponibilă",
+      "startDate": "Dată start",
+      "endDate": "Dată final",
+      "clear": "Șterge filtrele"
+    },
+    "kpidashboard": {
+      "tabs": {
+        "all": "Toate Metricile",
+        "overview": "Prezentare Generală",
+        "sla": "Conformitate SLA",
+        "categories": "Categorii",
+        "teams": "Echipe"
+      },
+      "sections": {
+        "core": "Indicatori de Performanță",
+        "sla": "Conformitate & Obiective SLA",
+        "categorization": "Defalcare Categorii",
+        "teamPerformance": "Performanța Echipelor"
+      },
+      "metrics": {
+        "totalTickets": "Total Tichete",
+        "avgResTime": "Timp Mediu Rezolvare",
+        "unresolved": "Tichete Nerezolvate",
+        "resolved": "Tichete Rezolvate",
+        "overdue": "Tichete Depășite",
+        "slaCompliance": "Conformitate SLA",
+        "inSla": "Tichete în SLA",
+        "breached": "Tichete Depășite SLA"
+      },
+      "charts": {
+        "ticketsByStatus": "Tichete după Status",
+        "ticketsByPriority": "Tichete după Prioritate",
+        "slaStatus": "Defalcare Status SLA",
+        "resTimeDist": "Distribuția Timpului de Rezolvare",
+        "catTier1": "Categorie Tier 1",
+        "catTier2": "Categorie Tier 2 (Top 10)",
+        "catTier3": "Categorie Tier 3 (Top 10)",
+        "ticketsPerTeam": "Tichete per Echipă",
+        "avgResTimePerTeam": "Timp Mediu Rezolvare per Echipă"
+      }
+    },
+    "filterbar": {
+      "labels": {
+        "search": "CĂUTARE",
+        "status": "STATUS",
+        "team": "ECHIPĂ",
+        "startDate": "DATĂ START",
+        "endDate": "DATĂ FINAL"
+      },
+      "placeholders": {
+        "search": "Nr. tichet, descriere..."
+      },
+      "options": {
+        "all": "Toate",
+        "perPage": "pagină"
+      },
+      "buttons": {
+        "reset": "RESET FILTRE",
+        "exportCsv": "EXPORT CSV",
+        "exportXlsx": "EXPORT XLSX",
+        "exporting": "EXPORT..."
+      },
+      "sort": {
+        "date": "Sortare: Data",
+        "priority": "Sortare: Prioritate",
+        "status": "Sortare: Status",
+        "company": "Sortare: Companie",
+        "team": "Sortare: Echipă"
+      },
+      "tooltips": {
+        "asc": "Crescător",
+        "desc": "Descrescător"
+      }
+    },
+    "table": {
+      "title": "LISTA TICHETE",
+      "chartFilter": "Filtru Grafic",
+      "clearChartFilter": "Șterge filtrul vizual",
+      "page": "pagina",
+      "of": "din",
+      "paginationInfo": "{total} total · pagina {page} din {pages}",
+      "pageIndicator": "pagina {page} din {totalPages}",
+      "loading": "SE ÎNCARCĂ...",
+      "rowTooltip": "Click pentru detalii",
+      "headers": {
+        "ticketNo": "TICKET #",
+        "status": "STATUS",
+        "priority": "PRIORITATE",
+        "company": "COMPANIE",
+        "project": "PROIECT",
+        "team": "ECHIPĂ",
+        "person": "PERSOANĂ",
+        "service": "SERVICIU",
+        "description": "DESCRIERE",
+        "date": "DATA"
+      }
+    },
+    "ticketModal": {
+      "header": {
+        "details": "DETALII TICHET"
+      },
+      "fields": {
+        "company": "COMPANIE",
+        "team": "ECHIPĂ",
+        "project": "PROIECT",
+        "service": "SERVICIU",
+        "assigned": "PERSOANĂ ASIGNATĂ",
+        "date": "DATA ÎNREGISTRĂRII"
+      },
+      "description": {
+        "title": "DESCRIERE",
+        "empty": "Fără descriere disponibilă."
+      },
+      "actions": {
+        "hide": "▲ ASCUNDE ACȚIUNI",
+        "show": "▼ GESTIONEAZĂ TICHET",
+        "status": {
+          "title": "Schimbă status",
+          "button": "SCHIMBĂ STATUS",
+          "applying": "SE APLICĂ...",
+          "successPrefix": "Status schimbat în"
+        },
+        "self": {
+          "title": "Preia tichetul",
+          "disabledTooltip": "Disponibil doar pentru tichete „Open” neasignate.",
+          "buttonPrefix": "PREIA",
+          "me": "eu",
+          "applying": "SE PRELUA...",
+          "success": "Tichet preluat cu succes.",
+          "restriction": "Doar tichete „Open” neasignate pot fi preluate."
+        },
+        "admin": {
+          "title": "Asignează (Team Admin)",
+          "badge": "ADMIN",
+          "selectPlaceholder": "Alege coleg din echipă...",
+          "button": "ASIGNEAZĂ COLEG",
+          "applying": "SE ASIGNEAZĂ...",
+          "successPrefix": "Tichet asignat lui",
+          "noRolePrefix": "Nu ai rol de Team Admin",
+          "noRoleTeam": " pe echipa",
+          "noRoleSuffix": ". Doar adminii pot asigna tichete colegilor de echipă."
+        }
+      }
+    }
+  }
+
+}

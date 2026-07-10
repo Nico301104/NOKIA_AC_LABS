@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../context/LanguageContext'
 import {
   STATUS_IDS,
   STATUS_NAMES,
@@ -49,9 +50,28 @@ function priorityColor(priority: string | null) {
   return (priority ? map[priority] : undefined) ?? 'var(--text-muted)'
 }
 
-function formatDateTime(dt: string | null) {
+function formatDateTime(dt: string | null, lang: string) {
   if (!dt) return '—'
-  try { return new Date(dt).toLocaleString('ro-RO', { dateStyle: 'long', timeStyle: 'short' }) } catch { return dt }
+  const date = new Date(dt);
+  if (isNaN(date.getTime())) return dt;
+
+  const locale = lang === 'ro' ? 'ro-RO' : 'en-US';
+
+  // Manual construction to avoid auto-injected joiner words like "la"
+  const datePart = date.toLocaleDateString(locale, { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+  
+  const timePart = date.toLocaleTimeString(locale, { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+
+  // Returns "11 iulie 2026, 11:00" or "July 11, 2026, 11:00 AM"
+  // You can adjust the separator ", " if you want a different look
+  return `${datePart}, ${timePart}`;
 }
 
 // Un câmp de detaliu (etichetă + valoare) afișat într-un panou.
@@ -98,6 +118,7 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
   const [busy, setBusy] = useState<'status' | 'self' | 'admin' | null>(null)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [showActions, setShowActions] = useState(false)
+  const { t, language } = useLanguage();
 
   // Echipa userului curent + dacă el e Team Admin (din GET /users/my-team).
   const [team, setTeam] = useState<TeamUser[]>([])
@@ -179,7 +200,7 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
           </button>
 
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', letterSpacing: '0.28em', color: 'var(--text-muted)', marginBottom: '0.45rem' }}>
-            DETALII TICHET
+            {t('dashboard.ticketModal.header.details')}
           </div>
           <div className="tdm-title" style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
             {ticket.Ticket_Number}
@@ -210,12 +231,12 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
 
           {/* Grid câmpuri */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.7rem' }}>
-            <Field label="COMPANIE" value={ticket.Company} />
-            <Field label="ECHIPĂ" value={ticket.Team} />
-            <Field label="PROIECT" value={ticket.Project} />
-            <Field label="SERVICIU" value={ticket.Service} />
-            <Field label="PERSOANĂ ASIGNATĂ" value={ticket.Assigned_Person} accent={ticket.Assigned_Person ? '#16a34a' : undefined} />
-            <Field label="DATA ÎNREGISTRĂRII" value={formatDateTime(ticket.Submit_Datetime)} />
+            <Field label={t('dashboard.ticketModal.fields.company')} value={ticket.Company} />
+            <Field label={t('dashboard.ticketModal.fields.team')} value={ticket.Team} />
+            <Field label={t('dashboard.ticketModal.fields.project')} value={ticket.Project} />
+            <Field label={t('dashboard.ticketModal.fields.service')} value={ticket.Service} />
+            <Field label={t('dashboard.ticketModal.fields.assigned')} value={ticket.Assigned_Person} accent={ticket.Assigned_Person ? '#16a34a' : undefined} />
+            <Field label={t('dashboard.ticketModal.fields.date')} value={formatDateTime(ticket.Submit_Datetime, language)} />
           </div>
 
           {/* Descriere proeminentă */}
@@ -224,10 +245,10 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
             borderRadius: '12px', padding: '1.1rem 1.2rem',
           }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.52rem', letterSpacing: '0.24em', color: 'var(--text-muted)', marginBottom: '0.55rem' }}>
-              DESCRIERE
+             {t('dashboard.ticketModal.description.title')}
             </div>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', lineHeight: 1.65, color: 'var(--text-primary)', margin: 0 }}>
-              {ticket.Description || 'Fără descriere disponibilă.'}
+              {ticket.Description || t('dashboard.ticketModal.description.empty')}
             </p>
           </div>
 
@@ -255,7 +276,7 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
               boxShadow: '0 6px 16px rgba(37,99,235,0.3)',
             }}
           >
-            {showActions ? '▲ ASCUNDE ACȚIUNI' : '▼ GESTIONEAZĂ TICHET'}
+            {showActions ? t('dashboard.ticketModal.actions.hide') : t('dashboard.ticketModal.actions.show')}
           </button>
 
           {/* Panou acțiuni */}
@@ -264,36 +285,40 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
 
               {/* Schimbare status */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Schimbă status</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {t('dashboard.ticketModal.actions.status.title')}
+                </span>
                 <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   <select value={newStatus} onChange={e => setNewStatus(e.target.value)} style={{ ...inputStyle, width: 200 }}>
                     {STATUS_NAMES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                   <button
                     disabled={busy !== null}
-                    onClick={() => run('status', () => changeTicketStatus(ticket.Ticket_Number, STATUS_IDS[newStatus]), `Status schimbat în „${newStatus}".`)}
+                    onClick={() => run('status', () => changeTicketStatus(ticket.Ticket_Number, STATUS_IDS[newStatus]), `${t('dashboard.ticketModal.actions.status.successPrefix')} „${newStatus}".`)}
                     style={actionBtn('linear-gradient(180deg, var(--violet-400), var(--violet-700))', busy !== null)}
                   >
-                    {busy === 'status' ? 'SE APLICĂ...' : 'SCHIMBĂ STATUS'}
+                    {busy === 'status' ? t('dashboard.ticketModal.actions.status.applying') : t('dashboard.ticketModal.actions.status.button')}
                   </button>
                 </div>
               </div>
 
               {/* Preluare proprie */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>Preia tichetul</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {t('dashboard.ticketModal.actions.self.title')}
+                </span>
                 <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   <button
                     disabled={busy !== null || !assignable}
-                    title={assignable ? '' : 'Disponibil doar pentru tichete „Open" neasignate.'}
-                    onClick={() => run('self', () => selfAssignTicket(ticket.Ticket_Number, currentUser), 'Tichet preluat cu succes.')}
+                    title={assignable ? '' : t('dashboard.ticketModal.actions.self.disabledTooltip')}
+                    onClick={() => run('self', () => selfAssignTicket(ticket.Ticket_Number, currentUser), t('dashboard.ticketModal.actions.self.success'))}
                     style={actionBtn('linear-gradient(180deg, #16a34a, #15803d)', busy !== null || !assignable)}
                   >
-                    {busy === 'self' ? 'SE PRELUA...' : `PREIA (${currentUser || 'eu'})`}
+                    {busy === 'self' ? t('dashboard.ticketModal.actions.self.applying') : `${t('dashboard.ticketModal.actions.self.buttonPrefix')} (${currentUser || t('dashboard.ticketModal.actions.self.me')})`}
                   </button>
                   {!assignable && (
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.64rem', color: 'var(--text-muted)' }}>
-                      Doar tichete „Open" neasignate pot fi preluate.
+                      {t('dashboard.ticketModal.actions.self.restriction')}
                     </span>
                   )}
                 </div>
@@ -302,14 +327,14 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
               {/* Asignare admin — afișată doar Team Admin-ilor (detectat din /users/my-team) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                  Asignează (Team Admin)
+                  {t('dashboard.ticketModal.actions.admin.title')}
                   {isAdmin && (
                     <span style={{
                       fontFamily: 'var(--font-mono)', fontSize: '0.5rem', letterSpacing: '0.15em',
                       padding: '0.15rem 0.45rem', borderRadius: '999px',
                       background: 'rgba(99,102,241,0.16)', color: '#4f46e5',
                     }}>
-                      ADMIN
+                      {t('dashboard.ticketModal.actions.admin.badge')}
                     </span>
                   )}
                 </span>
@@ -320,21 +345,21 @@ export default function TicketDetailModal({ ticket, currentUser, onClose, onDone
                       onChange={e => setTargetUser(e.target.value)}
                       style={{ ...inputStyle, width: 240 }}
                     >
-                      <option value="">Alege coleg din echipă...</option>
+                      <option value="">{t('dashboard.ticketModal.actions.admin.selectPlaceholder')}</option>
                       {teammates.map(u => <option key={u.FullName} value={u.FullName}>{u.FullName}</option>)}
                     </select>
                     <button
                       disabled={busy !== null || !assignable || !targetUser.trim()}
-                      title={assignable ? '' : 'Disponibil doar pentru tichete „Open" neasignate.'}
-                      onClick={() => run('admin', () => adminAssignTicket(ticket.Ticket_Number, currentUser, targetUser.trim()), `Tichet asignat lui ${targetUser.trim()}.`)}
+                      title={assignable ? '' : t('dashboard.ticketModal.actions.self.disabledTooltip')}
+                      onClick={() => run('admin', () => adminAssignTicket(ticket.Ticket_Number, currentUser, targetUser.trim()), `${t('dashboard.ticketModal.actions.admin.successPrefix')} ${targetUser.trim()}.`)}
                       style={actionBtn('linear-gradient(180deg, var(--signal-400), var(--signal-700))', busy !== null || !assignable || !targetUser.trim())}
                     >
-                      {busy === 'admin' ? 'SE ASIGNEAZĂ...' : 'ASIGNEAZĂ COLEG'}
+                      {busy === 'admin' ? t('dashboard.ticketModal.actions.admin.applying') : t('dashboard.ticketModal.actions.admin.button')}
                     </button>
                   </div>
                 ) : (
                   <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.66rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                    Nu ai rol de Team Admin{team.length ? ` pe echipa ${team[0].Team}` : ''}. Doar adminii pot asigna tichete colegilor de echipă.
+                    {t('dashboard.ticketModal.actions.admin.noRolePrefix')}{team.length ? `${t('dashboard.ticketModal.actions.admin.noRoleTeam')} ${team[0].Team}` : ''}{t('dashboard.ticketModal.actions.admin.noRoleSuffix')}
                   </p>
                 )}
               </div>

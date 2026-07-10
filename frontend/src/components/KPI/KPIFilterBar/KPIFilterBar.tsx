@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../../context/LanguageContext';
 import './KPIFilterBar.css';
 
 export interface FiltersState {
@@ -99,6 +100,7 @@ export const KPIFilterBar = ({
   onDateChange,
   onClearFilters
 }: KPIFilterBarProps) => {
+  const { t } = useLanguage();
   const hasActiveFilters =
     filters.status.length > 0 ||
     filters.priority.length > 0 ||
@@ -109,7 +111,7 @@ export const KPIFilterBar = ({
   return (
     <section className="filter-bar">
       <MultiSelectDropdown
-        label="Status"
+        label={t('dashboard.kpifilter.status')}
         filterName="status"
         options={filterOptions.statuses}
         selectedValues={filters.status}
@@ -119,7 +121,7 @@ export const KPIFilterBar = ({
       />
 
       <MultiSelectDropdown
-        label="Priority"
+        label={t('dashboard.kpifilter.priority')}
         filterName="priority"
         options={filterOptions.priorities}
         selectedValues={filters.priority}
@@ -129,7 +131,7 @@ export const KPIFilterBar = ({
       />
 
       <MultiSelectDropdown
-        label="Team"
+        label={t('dashboard.kpifilter.team')}
         filterName="team"
         options={filterOptions.teams}
         selectedValues={filters.team}
@@ -139,7 +141,7 @@ export const KPIFilterBar = ({
       />
 
       <div className="filter-group date-filter-group">
-        <label>Start Date</label>
+        <label>{t('dashboard.kpifilter.startDate')}</label>
         <input
           type="date"
           name="startDate"
@@ -149,7 +151,7 @@ export const KPIFilterBar = ({
       </div>
 
       <div className="filter-group date-filter-group">
-        <label>End Date</label>
+        <label>{t('dashboard.kpifilter.endDate')}</label>
         <input
           type="date"
           name="endDate"
@@ -165,7 +167,7 @@ export const KPIFilterBar = ({
           className="clear-filters-action-btn"
           onClick={onClearFilters}
         >
-          Clear Filters
+          {t('dashboard.kpifilter.clear')}
         </button>
       )}
     </section>

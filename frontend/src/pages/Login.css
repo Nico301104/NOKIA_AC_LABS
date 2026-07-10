@@ -301,6 +301,40 @@
 }
 .btn-primary:hover .btn-arrow { transform: translateX(3px); }
 
+/* Language Toggle Button on Login Page */
+.login-lang-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: white;
+  backdrop-filter: blur(8px); /* Smooth frosted glass effect */
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Soft dark-mode border */
+  color: #919191; /* Crisp subtle white text */
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover and Focus interaction states */
+.login-lang-toggle:hover {
+  background: linear-gradient(180deg, var(--violet-400) 0%, var(--violet-700) 100%);
+  border-color: rgba(37, 99, 235, 0.4); /* Glowes slightly with Nokia Blue */
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.login-lang-toggle:active {
+  transform: translateY(0);
+}
+
 /* FOOTER */
 .footer-mini {
   display: flex;
