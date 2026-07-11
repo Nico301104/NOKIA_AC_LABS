@@ -64,6 +64,12 @@ export const KpiDashboard = ({ filters, onChartSelection }: KpiDashboardProps) =
 
   // REMOVED: Early return clause that was unmounting the whole component tree
 
+  const getKpiCols = (count: number) => {
+    if (count <= 3) return 1; // 1, 2, or 3 cards -> 1 column, stacked vertically
+    if (count === 4) return 2; // 4 cards -> 2x2 grid
+    return 3; // 5+ cards -> max 3 columns (e.g. 5 is 3 on top, 2 on bottom)
+  };
+
   return (
     /* We append 'is-loading' when data is null to let CSS smoothly dim/freeze the dashboard sections */
     <div className={`kpi-dashboard-container ${!data ? 'is-loading' : ''}`}>
@@ -94,34 +100,23 @@ export const KpiDashboard = ({ filters, onChartSelection }: KpiDashboardProps) =
         {(activeTab === 'all' || activeTab === 'overview') && (
           <div className="dashboard-section">
             {activeTab === 'all' && <h3 className="section-divider-title">{t('dashboard.kpidashboard.sections.core')}</h3>}
-            <div className="stat-cards-grid">
-              <KPICard kpi={{
-                label: t('dashboard.kpidashboard.metrics.totalTickets'),
-                value: data?.total_tickets?.value ?? "...",
-                unit: ""
-              }} />
-              <KPICard kpi={{
-                label: t('dashboard.kpidashboard.metrics.avgResTime'),
-                value: data?.avg_res_time?.value ?? "...",
-                unit: ""
-              }} />
-              <KPICard kpi={{
-                label: t('dashboard.kpidashboard.metrics.unresolved'),
-                value: data?.unresolved_tickets?.value ?? "...",
-                unit: ""
-              }} />
-              <KPICard kpi={{
-                label: t('dashboard.kpidashboard.metrics.resolved'),
-                value: data?.resolved_tickets?.value ?? "...",
-                unit: ""
-              }} />
-              <KPICard kpi={{
-                label: t('dashboard.kpidashboard.metrics.overdue'),
-                value: data?.overdue_tickets?.value ?? "...",
-                unit: ""
-              }} />
-            </div>
-            <div className="charts-layout-grid">
+            
+            {/* NEW UNIFIED GRID: KPI Cards and Charts sit side-by-side */}
+            <div className="unified-dashboard-grid">
+              
+              {/* KPI CARD SUB-GRID */}
+              {/* We pass the dynamic column count as a CSS variable */}
+              <div 
+                className="kpi-card-container" 
+                style={{ '--kpi-cols': getKpiCols(5) } as React.CSSProperties}
+              >
+                <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.totalTickets'), value: data?.total_tickets?.value ?? "...", unit: "" }} />
+                <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.avgResTime'), value: data?.avg_res_time?.value ?? "...", unit: "" }} />
+                <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.unresolved'), value: data?.unresolved_tickets?.value ?? "...", unit: "" }} />
+                <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.resolved'), value: data?.resolved_tickets?.value ?? "...", unit: "" }} />
+                <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.overdue'), value: data?.overdue_tickets?.value ?? "...", unit: "" }} />
+              </div>
+              
               <KPIDonutChart
                 title={t('dashboard.kpidashboard.charts.ticketsByStatus')}
                 data={data?.tickets_by_status ?? []}
@@ -160,13 +155,17 @@ export const KpiDashboard = ({ filters, onChartSelection }: KpiDashboardProps) =
         {(activeTab === 'all' || activeTab === 'sla') && (
           <div className="dashboard-section">
             {activeTab === 'all' && <h3 className="section-divider-title">{t('dashboard.kpidashboard.sections.sla')}</h3>}
-            <div className="stat-cards-grid">
+            <div className="unified-dashboard-grid">
+              {/* 3 Cards -> Automatically returns 1 column, stacked vertically */}
+              <div
+                className="kpi-card-container" 
+                style={{ '--kpi-cols': getKpiCols(3) } as React.CSSProperties}
+              >
               <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.slaCompliance'), value: data?.sla_compliance?.value ?? "...", unit: "%" }} />
               <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.inSla'), value: data?.sla_compliance?.breakdown?.in_sla ?? "...", unit: "" }} />
               <KPICard kpi={{ label: t('dashboard.kpidashboard.metrics.breached'), value: data?.sla_compliance?.breakdown?.out_sla ?? "...", unit: "" }} />
             </div>
 
-            <div className="charts-layout-grid">
               <KPIDonutChart
                 title={t('dashboard.kpidashboard.charts.slaStatus')}
                 data={data ? [

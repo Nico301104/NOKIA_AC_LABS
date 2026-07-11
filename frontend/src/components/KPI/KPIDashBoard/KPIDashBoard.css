@@ -112,3 +112,52 @@
 .charts-layout-grid.tier-charts {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
+
+/* Master Grid Layout Base */
+.kpi-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  height: auto;
+}
+
+/* ── NEW UNIFIED GRID ── */
+/* Places the KPI cards block, Donut Chart, and Bar Chart side-by-side */
+.unified-dashboard-grid {
+  display: grid;
+  /* Columns will be at least 260px wide, scaling up evenly */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.5rem;
+  width: 100%;
+  
+  /* CRITICAL: This forces the KPI block and Charts to share the same height */
+  align-items: stretch; 
+}
+
+/* ── DYNAMIC KPI SUB-GRID (Flexbox Upgrade) ── */
+.kpi-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+.kpi-card-container > * {
+  /* flex-grow: 1 allows it to fill empty space on the last row.
+    flex-basis uses your TSX variable to set the initial column width. 
+  */
+  flex: 1 1 calc((100% / var(--kpi-cols, 1)) - 0.5rem);
+  
+  /* Ensure a minimum width so they don't crush into nothingness */
+  min-width: 130px; 
+  height: auto; 
+}
+
+/* ── MOBILE OVERRIDE ── */
+/* On small screens, we don't want 3 tiny KPI columns squeezed together */
+@media (max-width: 820px) {
+  .kpi-card-container {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}

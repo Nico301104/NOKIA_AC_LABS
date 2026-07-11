@@ -158,11 +158,75 @@
   background: linear-gradient(180deg, var(--violet-500), var(--violet-900));
 }
 
+/* ================================================
+   MOBILE RESPONSIVENESS & SCALING
+   ================================================ */
+
+/* Tablet Viewports */
 @media (max-width: 820px) {
-  .app-nav { padding: 0 1rem; }
-  .app-nav-user { display: none; }
-  .app-nav-links { gap: 0.9rem; }
+  .app-nav { 
+    padding: 0 1rem; 
+  }
+  .app-nav-user { 
+    display: none; 
+  }
+  .app-nav-links { 
+    gap: 0.8rem; 
+  }
+  .app-nav-link {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
 }
+
+/* Small Phones & Mobile Viewports */
 @media (max-width: 600px) {
-  .app-nav-titles { display: none; }
+  .app-nav {
+    padding: 0 0.75rem; /* Tighten edge padding to save horizontal real estate */
+  }
+  .app-nav-titles { 
+    display: none; 
+  }
+  
+  /* Reduce layout gaps significantly */
+  .app-nav-links { 
+    gap: 0.5rem; 
+  }
+  .app-nav-right {
+    gap: 0.4rem;
+  }
+  
+  /* Downscale the tab links */
+  .app-nav-link {
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0;
+  }
+  
+  /* Shrink the action buttons */
+  .app-nav-btn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+  }
+  
+  /* Tighten the separator divider line */
+  .app-nav-sep {
+    height: 16px;
+  }
+}
+
+/* Ultra-Narrow Screens (e.g., small iPhones / older devices) */
+@media (max-width: 360px) {
+  .app-nav-links {
+    gap: 0.35rem;
+  }
+  .app-nav-link {
+    font-size: 0.55rem;
+  }
+  .app-nav-btn {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.55rem;
+  }
 }
